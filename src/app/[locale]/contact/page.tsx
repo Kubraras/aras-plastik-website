@@ -18,11 +18,17 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
   const text = copy[locale];
   const settings = await getSiteSettings();
   const address = locale === "tr" ? settings.address_tr : settings.address_en || settings.address_tr;
+  const contactPeople = [
+    { name: settings.contact_person_1_name, phone: settings.contact_person_1_phone },
+    { name: settings.contact_person_2_name, phone: settings.contact_person_2_phone },
+  ].filter((person): person is { name: string; phone: string } => Boolean(person.name && person.phone));
+  const contactNumbers = new Set(contactPeople.map((person) => person.phone.replace(/\D/g, "")));
   const items = [
-    settings.phone ? { icon: Phone, label: text.phone, value: settings.phone, href: `tel:${settings.phone}` } : null,
+    ...contactPeople.map((person) => ({ icon: Phone, label: person.name, value: person.phone, href: `tel:${person.phone.replace(/[^\d+]/g, "")}` })),
+    settings.phone && !contactNumbers.has(settings.phone.replace(/\D/g, "")) ? { icon: Phone, label: text.phone, value: settings.phone, href: `tel:${settings.phone}` } : null,
     settings.email ? { icon: AtSign, label: text.email, value: settings.email, href: `mailto:${settings.email}` } : null,
     settings.whatsapp ? { icon: MessageCircle, label: "WhatsApp", value: settings.whatsapp, href: `https://wa.me/${settings.whatsapp.replace(/\D/g, "")}` } : null,
     address ? { icon: MapPin, label: text.address, value: address, href: settings.map_url || undefined } : null,
   ].filter((item): item is NonNullable<typeof item> => Boolean(item));
-  return <><section className="page-hero"><div className="page-shell"><div className="eyebrow"><span className="eyebrow-line" />ARAS PLASTİK · 03</div><h1>{text.contactTitle}</h1><p>{text.contactSub}</p></div></section><section className="page-content"><div className="page-shell contact-layout"><div className="contact-details"><h2>{locale === "tr" ? "Bize ulaşın" : "Get in touch"}</h2><p>{settings.company_name}</p><div className="contact-detail-list">{items.length ? items.map((item) => <a key={item.label} className="contact-detail" href={item.href} target={item.href?.startsWith("http") ? "_blank" : undefined} rel={item.href?.startsWith("http") ? "noreferrer" : undefined}><item.icon size={17} strokeWidth={1.5} /><span>{item.value}</span></a>) : <p>{text.notConfigured}</p>}</div></div><ContactForm locale={locale} /></div></section></>;
+  return <><section className="page-hero"><div className="page-shell"><div className="eyebrow"><span className="eyebrow-line" />ARAS PLASTİK · 03</div><h1>{text.contactTitle}</h1><p>{text.contactSub}</p></div></section><section className="page-content"><div className="page-shell contact-layout"><div className="contact-details"><h2>{locale === "tr" ? "Bize ulaşın" : "Get in touch"}</h2><p>{settings.company_name}</p><div className="contact-detail-list">{items.length ? items.map((item) => <a key={item.label} className="contact-detail" href={item.href} target={item.href?.startsWith("http") ? "_blank" : undefined} rel={item.href?.startsWith("http") ? "noreferrer" : undefined}><item.icon size={17} strokeWidth={1.5} /><span className="contact-detail-copy"><strong>{item.label}</strong><span>{item.value}</span></span></a>) : <p>{text.notConfigured}</p>}</div></div><ContactForm locale={locale} /></div></section></>;
 }

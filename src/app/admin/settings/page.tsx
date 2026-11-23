@@ -17,6 +17,10 @@ export default async function AdminSettingsPage({ searchParams }: { searchParams
     <form className="admin-settings-form" action={saveSiteSettings}><div className="admin-form-section"><h2>Firma bilgileri</h2><div className="admin-form-grid">
       <label className="field"><span>Firma adı</span><input name="company_name" defaultValue={data?.company_name || "Aras Plastik"} required maxLength={120} /></label>
       <label className="field"><span>Telefon</span><input name="phone" type="tel" defaultValue={data?.phone || ""} maxLength={40} /></label>
+      <label className="field"><span>İletişim kişisi 1</span><input name="contact_person_1_name" defaultValue={data?.contact_person_1_name || "Davut Aras"} maxLength={120} /></label>
+      <label className="field"><span>Telefon 1</span><input name="contact_person_1_phone" type="tel" defaultValue={data?.contact_person_1_phone || "05363548037"} maxLength={40} /></label>
+      <label className="field"><span>İletişim kişisi 2</span><input name="contact_person_2_name" defaultValue={data?.contact_person_2_name || "Muhammed Yusuf Aras"} maxLength={120} /></label>
+      <label className="field"><span>Telefon 2</span><input name="contact_person_2_phone" type="tel" defaultValue={data?.contact_person_2_phone || "05453558037"} maxLength={40} /></label>
       <label className="field"><span>E-posta</span><input name="email" type="email" defaultValue={data?.email || ""} maxLength={254} /></label>
       <label className="field"><span>WhatsApp numarası</span><input name="whatsapp" defaultValue={data?.whatsapp || ""} maxLength={40} placeholder="Ülke koduyla, ör. 90…" /></label>
       <label className="field"><span>Adres (TR)</span><textarea name="address_tr" defaultValue={data?.address_tr || ""} rows={3} maxLength={500} /></label>

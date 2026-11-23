@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState, type ChangeEvent, type FormEvent } from "react";
 import { createBrowserClient } from "@supabase/ssr";
-import { ArrowDown, ArrowUp, ImagePlus, LoaderCircle, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowUp, ImagePlus, LoaderCircle, Trash2, Video } from "lucide-react";
 import { toast } from "sonner";
 import type { Product, ProductImage } from "@/lib/types";
 
@@ -14,13 +14,15 @@ type Category = { id: string; name_tr: string; name_en: string | null };
 type Media = { key: string; url: string; file?: File; existingId?: string };
 const maxImageBytes = 15 * 1024 * 1024;
 const imageTypes = new Set(["image/jpeg", "image/png", "image/webp", "image/avif"]);
+const maxVideoBytes = 50 * 1024 * 1024;
+const videoTypes = new Set(["video/mp4", "video/webm"]);
 
 function slugify(input: string) {
   return input.toLocaleLowerCase("tr-TR").replace(/[ğ]/g, "g").replace(/[ü]/g, "u").replace(/[ş]/g, "s").replace(/[ı]/g, "i").replace(/[ö]/g, "o").replace(/[ç]/g, "c").normalize("NFKD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 }
 
-function storagePath(url: string) {
-  const marker = "/storage/v1/object/public/product-images/";
+function storagePath(url: string, bucket = "product-images") {
+  const marker = `/storage/v1/object/public/${bucket}/`;
   const index = url.indexOf(marker);
   return index < 0 ? null : decodeURIComponent(url.slice(index + marker.length));
 }
@@ -35,6 +37,33 @@ export function AdminProductForm({ product, categories }: { product: Product | n
   const [media, setMedia] = useState<Media[]>(initialMedia);
   const [coverKey, setCoverKey] = useState(initialMedia.find((image) => image.url === product?.cover_image)?.key || initialMedia[0]?.key || "");
   const [pending, setPending] = useState(false);
+  const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [videoPreview, setVideoPreview] = useState("");
+  const [videoUrl, setVideoUrl] = useState(product?.video_url || "");
+
+  function addVideoFile(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    if (!videoTypes.has(file.type)) { toast.error("MP4 veya WebM video seçin."); return; }
+    if (file.size > maxVideoBytes) { toast.error("Video en fazla 50 MB olabilir."); return; }
+    if (videoPreview) URL.revokeObjectURL(videoPreview);
+    setVideoFile(file);
+    setVideoPreview(URL.createObjectURL(file));
+  }
+
+  function clearVideoFile() {
+    if (videoPreview) URL.revokeObjectURL(videoPreview);
+    setVideoFile(null);
+    setVideoPreview("");
+  }
+
+  function changeVideoUrl(value: string) {
+    if (videoPreview) URL.revokeObjectURL(videoPreview);
+    setVideoFile(null);
+    setVideoPreview("");
+    setVideoUrl(value);
+  }
 
   function addFiles(event: ChangeEvent<HTMLInputElement>) {
     const files = Array.from(event.target.files ?? []);
@@ -75,7 +104,7 @@ export function AdminProductForm({ product, categories }: { product: Product | n
     if (!url || !anonKey) { toast.error("Supabase ortam değişkenleri eksik."); setPending(false); return; }
     const supabase = createBrowserClient(url, anonKey);
     const id = product?.id || crypto.randomUUID();
-    const uploadedPaths: string[] = [];
+    const uploadedObjects: Array<{ bucket: "product-images" | "product-videos"; path: string }> = [];
     try {
       const readyMedia: Array<{ key: string; url: string; existingId?: string }> = [];
       for (const image of media) {
@@ -84,9 +113,19 @@ export function AdminProductForm({ product, categories }: { product: Product | n
         const path = `${id}/${crypto.randomUUID()}-${safeName}`;
         const { error: uploadError } = await supabase.storage.from("product-images").upload(path, image.file, { contentType: image.file.type, upsert: false });
         if (uploadError) throw uploadError;
-        uploadedPaths.push(path);
+        uploadedObjects.push({ bucket: "product-images", path });
         const { data } = supabase.storage.from("product-images").getPublicUrl(path);
         readyMedia.push({ key: image.key, url: data.publicUrl });
+      }
+
+      let savedVideoUrl = videoUrl.trim() || null;
+      if (videoFile) {
+        const safeName = videoFile.name.replace(/[^\w.-]/g, "-").slice(-100);
+        const path = `${id}/${crypto.randomUUID()}-${safeName}`;
+        const { error: uploadError } = await supabase.storage.from("product-videos").upload(path, videoFile, { contentType: videoFile.type, upsert: false });
+        if (uploadError) throw uploadError;
+        uploadedObjects.push({ bucket: "product-videos", path });
+        savedVideoUrl = supabase.storage.from("product-videos").getPublicUrl(path).data.publicUrl;
       }
 
       const specs: Record<string, string> = {};
@@ -111,7 +150,7 @@ export function AdminProductForm({ product, categories }: { product: Product | n
         dimensions: String(formData.get("dimensions") || "").trim() || null,
         usage_area_tr: String(formData.get("usageTr") || "").trim() || null,
         usage_area_en: String(formData.get("usageEn") || "").trim() || null,
-        video_url: String(formData.get("videoUrl") || "").trim() || null,
+        video_url: savedVideoUrl,
         seo_title_tr: String(formData.get("seoTitleTr") || "").trim() || null,
         seo_title_en: String(formData.get("seoTitleEn") || "").trim() || null,
         seo_description_tr: String(formData.get("seoDescriptionTr") || "").trim() || null,
@@ -140,10 +179,15 @@ export function AdminProductForm({ product, categories }: { product: Product | n
         const paths = removed.map((image) => storagePath(image.image_url)).filter((path): path is string => Boolean(path));
         if (paths.length) await supabase.storage.from("product-images").remove(paths);
       }
+      const oldVideoPath = product?.video_url ? storagePath(product.video_url, "product-videos") : null;
+      if (oldVideoPath && product?.video_url !== values.video_url) await supabase.storage.from("product-videos").remove([oldVideoPath]);
       toast.success("Ürün kaydedildi.");
       router.push("/admin/products");
     } catch (error) {
-      if (uploadedPaths.length) await supabase.storage.from("product-images").remove(uploadedPaths);
+      for (const bucket of ["product-images", "product-videos"] as const) {
+        const paths = uploadedObjects.filter((item) => item.bucket === bucket).map((item) => item.path);
+        if (paths.length) await supabase.storage.from(bucket).remove(paths);
+      }
       toast.error(error instanceof Error ? error.message : "Ürün kaydedilemedi.");
     } finally {
       setPending(false);
@@ -160,7 +204,7 @@ export function AdminProductForm({ product, categories }: { product: Product | n
       <label className="field"><span>Kategori</span><select name="categoryId" defaultValue={product?.category_id || ""}><option value="">Kategori seçilmedi</option>{categories.map((category) => <option key={category.id} value={category.id}>{category.name_tr}</option>)}</select></label>
       <AdminField label="Malzeme" name="material" defaultValue={product?.material || ""} />
       <AdminField label="Ölçüler" name="dimensions" defaultValue={product?.dimensions || ""} />
-      <AdminField label="Video URL" name="videoUrl" type="url" defaultValue={product?.video_url || ""} placeholder="https://…" />
+      <div className="field admin-area"><span>Ürün videosu</span><div className="admin-video-controls"><input name="videoUrl" type="url" value={videoUrl} onChange={(event) => changeVideoUrl(event.target.value)} placeholder="HTTPS video bağlantısı" maxLength={2048} /><label className="admin-upload-button"><Video size={15} />Video yükle<input type="file" accept="video/mp4,video/webm,.mp4,.webm" onChange={addVideoFile} /></label></div><p className="admin-video-help">MP4 veya WebM dosyası · en fazla 50 MB. Dosya yüklersen bağlantı alanı yerine bu video kaydedilir.</p>{videoPreview ? <div className="admin-video-preview"><video src={videoPreview} controls muted playsInline /><button type="button" onClick={clearVideoFile}>Yüklenen dosyayı kaldır</button></div> : videoUrl && <p className="admin-video-help">Kayıtlı video: <a href={videoUrl} target="_blank" rel="noreferrer">Yeni sekmede aç</a></p>}</div>
       <AdminField label="Kısa açıklama (TR)" name="shortTr" defaultValue={product?.short_description_tr || ""} />
       <AdminField label="Short description (EN)" name="shortEn" defaultValue={product?.short_description_en || ""} />
       <AdminArea label="Detaylı açıklama (TR)" name="descriptionTr" defaultValue={product?.description_tr || ""} />

@@ -41,6 +41,10 @@ export type SiteSettings = {
   company_name: string;
   company_description_tr: string | null;
   company_description_en: string | null;
+  contact_person_1_name: string | null;
+  contact_person_1_phone: string | null;
+  contact_person_2_name: string | null;
+  contact_person_2_phone: string | null;
   phone: string | null;
   email: string | null;
   whatsapp: string | null;
@@ -57,6 +61,8 @@ export type SiteContent = Record<string, string | string[]>;
 
 export const emptySettings: SiteSettings = {
   company_name: "Aras Plastik", company_description_tr: null, company_description_en: null,
+  contact_person_1_name: "Davut Aras", contact_person_1_phone: "05363548037",
+  contact_person_2_name: "Muhammed Yusuf Aras", contact_person_2_phone: "05453558037",
   phone: null, email: null, whatsapp: null, address_tr: null, address_en: null,
   map_url: null, instagram: null, linkedin: null, logo_url: null, favicon_url: null,
 };

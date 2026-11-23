@@ -64,6 +64,8 @@ export async function saveSiteSettings(formData: FormData) {
     company_name: z.string().trim().min(1).max(120),
     company_description_tr: z.string().max(5000),
     company_description_en: z.string().max(5000),
+    contact_person_1_name: z.string().trim().max(120), contact_person_1_phone: z.string().trim().max(40),
+    contact_person_2_name: z.string().trim().max(120), contact_person_2_phone: z.string().trim().max(40),
     phone: z.string().max(40), email: z.union([z.literal(""), z.string().email().max(254)]), whatsapp: z.string().max(40),
     address_tr: z.string().max(500), address_en: z.string().max(500),
     map_url: z.union([z.literal(""), httpsUrl]),

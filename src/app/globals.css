@@ -123,3 +123,13 @@ button, a { -webkit-tap-highlight-color: transparent; }
 
 .about-company-image { object-fit: cover; opacity: .78; }
 .prose-placeholder { white-space: pre-line; }
+.contact-detail-copy { display: grid; gap: 4px; }
+.contact-detail-copy strong { font-weight: 500; }
+.contact-detail-copy > span { color: #738289; }
+.admin-video-preview { display: flex; align-items: start; gap: 12px; margin-top: 10px; }
+.admin-video-preview video { width: min(100%, 360px); max-height: 220px; background: #071c2a; }
+.admin-video-preview button { padding: 7px 10px; border: 1px solid #dfe6e8; color: #526a72; background: white; font-size: 10px; cursor: pointer; }
+.admin-video-help { color: #738289; font-size: 10px; line-height: 1.6; }
+.admin-video-controls { display: flex; align-items: center; gap: 10px; }
+.admin-video-controls > input { flex: 1; min-width: 0; }
+.admin-video-controls .admin-upload-button { white-space: nowrap; }

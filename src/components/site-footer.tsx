@@ -8,6 +8,12 @@ export function SiteFooter({ locale, settings }: { locale: Locale; settings: Sit
   const text = copy[locale];
   const year = new Date().getFullYear();
   const address = locale === "tr" ? settings.address_tr : settings.address_en ?? settings.address_tr;
+  const contactPeople = [
+    { name: settings.contact_person_1_name, phone: settings.contact_person_1_phone },
+    { name: settings.contact_person_2_name, phone: settings.contact_person_2_phone },
+  ].filter((person): person is { name: string; phone: string } => Boolean(person.name && person.phone));
+  const contactNumbers = new Set(contactPeople.map((person) => person.phone.replace(/\D/g, "")));
+  const showCompanyPhone = Boolean(settings.phone && !contactNumbers.has(settings.phone.replace(/\D/g, "")));
   return (
     <footer className="site-footer">
       <div className="footer-main page-shell">
@@ -28,13 +34,14 @@ export function SiteFooter({ locale, settings }: { locale: Locale; settings: Sit
         </div>
         <div className="footer-column footer-contact">
           <span className="footer-label">{text.contact}</span>
-          {settings.phone && <a href={`tel:${settings.phone}`}>{settings.phone}<ArrowUpRight size={13} /></a>}
+          {contactPeople.map((person) => <a key={person.name} href={`tel:${person.phone.replace(/[^\d+]/g, "")}`}>{person.name} · {person.phone}<ArrowUpRight size={13} /></a>)}
+          {showCompanyPhone && <a href={`tel:${settings.phone}`}>{settings.phone}<ArrowUpRight size={13} /></a>}
           {settings.email && <a href={`mailto:${settings.email}`}>{settings.email}<ArrowUpRight size={13} /></a>}
           {settings.whatsapp && <a href={`https://wa.me/${settings.whatsapp.replace(/\D/g, "")}`} target="_blank" rel="noreferrer">WhatsApp<ArrowUpRight size={13} /></a>}
           {settings.instagram && <a href={settings.instagram} target="_blank" rel="noreferrer">Instagram<ArrowUpRight size={13} /></a>}
           {settings.linkedin && <a href={settings.linkedin} target="_blank" rel="noreferrer">LinkedIn<ArrowUpRight size={13} /></a>}
           {address && <span className="footer-address">{address}</span>}
-          {!settings.phone && !settings.email && !address && <span className="footer-address">{text.notConfigured}</span>}
+          {!contactPeople.length && !settings.phone && !settings.email && !address && <span className="footer-address">{text.notConfigured}</span>}
         </div>
         <Link href={localizedPath("/contact", locale)} className="footer-contact-link">{locale === "tr" ? "Birlikte başlayalım" : "Let’s get started"}<ArrowRight size={17} /></Link>
       </div>

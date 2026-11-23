@@ -46,7 +46,7 @@ Site `http://localhost:3000` adresinde, yönetim girişi `/admin/login` adresind
 
 1. Supabase'te yeni bir proje oluşturun.
 2. Project URL, anon/public key ve service role key değerlerini proje ayarlarından alın. `SUPABASE_SERVICE_ROLE_KEY` yalnızca sunucu tarafındaki doğrulanmış form uçlarında ve rate limit çağrısında kullanılır; bu anahtarı hiçbir zaman `NEXT_PUBLIC_` adıyla tanımlamayın veya tarayıcı koduna koymayın.
-3. `supabase/migrations/202611230001_initial_schema.sql` dosyasını Supabase SQL Editor'da çalıştırın. Dosya tabloları, RLS politikalarını ve `product-images`, `product-videos`, `company-images` bucket'larını oluşturur.
+3. `supabase/migrations` içindeki SQL dosyalarını dosya adına göre sırayla Supabase SQL Editor'da çalıştırın. İlk migration tabloları, RLS politikalarını ve `product-images`, `product-videos`, `company-images` bucket'larını oluşturur; ikinci migration iletişim kişilerini ekler.
 4. Authentication ayarlarında e-posta/şifre girişini açın ve herkese açık kayıt oluşturmayı kapatın.
 5. Supabase Authentication bölümünde yönetici kullanıcısını elle oluşturun. Ardından SQL Editor'da aşağıdaki sorguyu kendi yönetici e-postanızla çalıştırıp sadece bu kullanıcıya admin rolü verin:
 
@@ -85,11 +85,13 @@ Resend ayarlanmazsa kayıtlar Supabase'e yine kaydedilir. Yayına çıkarken Res
 
 ## Admin paneli
 
+- Giriş: `/admin/login`. İlk kullanım için Supabase Auth'ta bir yönetici kullanıcısı oluşturup `app_metadata.role = admin` yetkisini verin.
 - Ürünlerde Türkçe/İngilizce metin, slug, kod, kategori, teknik alanlar, SEO metinleri, öne çıkarma ve yayın durumu yönetilir.
-- Ürün görselleri Supabase Storage'a yüklenir; admin görseli sıralayıp kapak olarak seçebilir. Video alanı URL kabul eder.
+- Ürün fotoğrafları Supabase Storage'a yüklenir; admin görselleri sıralayıp kapak olarak seçebilir. Ürün videosu için HTTPS bağlantısı girebilir veya en fazla 50 MB MP4/WebM dosyası yükleyebilirsiniz.
+- Ürün eklemek için `Ürünler > Yeni ürün` yolunu izleyin; bilgileri doldurun, fotoğraf ve isterseniz video ekleyin, sonra `Yayında` kutusunu seçip kaydedin.
 - Kategoriler yönetilebilir; teklif talepleri filtrelenebilir, durum ve admin notu güncellenebilir.
 - İletişim mesajları okunmuş/okunmamış olarak işaretlenebilir.
-- Firma bilgileri, ana sayfa hero metinleri ve hakkımızda içerikleri düzenlenebilir.
+- `Site içerikleri` ekranında firma bilgilerini, Davut Aras ve Muhammed Yusuf Aras iletişim alanlarını, ana sayfa görsellerini/metinlerini ve hakkımızda içeriğini düzenleyebilirsiniz.
 
 ## Veritabanı ve güvenlik
 
