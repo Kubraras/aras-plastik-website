@@ -1,0 +1,127 @@
+# Aras Plastik Kurumsal Web Sitesi
+
+Aras Plastik için Türkçe/İngilizce, ürün kataloğu ve teklif talebi odaklı bir kurumsal web uygulaması. Firma adresi, iletişim bilgileri, ürünler, kapasite veya geçmiş gibi sağlanmamış bilgiler uydurulmaz; içerikler yönetim ekranından doldurulana kadar açıklayıcı varsayılan metinler gösterilir.
+
+## Teknolojiler
+
+- Next.js 16 App Router ve TypeScript
+- Tailwind CSS 4
+- Supabase PostgreSQL, Auth, Storage ve Row Level Security
+- Zod sunucu doğrulaması
+- Lucide ikonları ve Sonner bildirimleri
+
+## Hazır özellikler
+
+- Responsive kurumsal ana sayfa, ürün listesi ve ürün detay sayfaları
+- Türkçe varsayılan adresler (`/products`, `/about`, `/contact`) ve İngilizce adresler (`/en/...`)
+- Arama, kategori filtresi ve sayfalama
+- Ürün görsel galerisi, video URL alanı, teknik özellikler ve iki dilli SEO alanları
+- İletişim ve teklif talebi formları; sunucu doğrulaması, honeypot ve IP tabanlı veritabanı rate limit
+- Supabase Auth ile yönetici girişi; ürün/kategori yönetimi, talepler, mesajlar ve içerik düzenleme
+- Ürün fotoğrafı yükleme ve sıralama; Storage bucket politikaları
+- Site ayarları, e-posta bildirimi (Resend yapılandırıldığında), WhatsApp
+- Dinamik metadata, canonical/hreflang, Open Graph, robots ve sitemap
+- Hukuki inceleme gerektirdiği açıkça belirtilen KVKK metin taslağı
+
+## Yerel kurulum
+
+1. Node.js 20.19 veya üzeri kurun (ESLint 10 gereksinimi; Next.js 16 için Node.js 20.9+ gerekir).
+2. Bu klasörde terminal açıp bağımlılıkları yükleyin:
+
+   ```bash
+   npm install
+   ```
+
+3. `.env.example` dosyasını `.env.local` adıyla kopyalayın ve Supabase proje değerlerini girin. `.env.local` Git'e eklenmez.
+4. Supabase migration'ını aşağıdaki yönergeyle uygulayın.
+5. Geliştirme sunucusunu çalıştırın:
+
+   ```bash
+   npm run dev
+   ```
+
+Site `http://localhost:3000` adresinde, yönetim girişi `/admin/login` adresinde açılır. Ürün ve formlar için Supabase ayarlarının yapılmış olması gerekir.
+
+## Supabase kurulumu
+
+1. Supabase'te yeni bir proje oluşturun.
+2. Project URL, anon/public key ve service role key değerlerini proje ayarlarından alın. `SUPABASE_SERVICE_ROLE_KEY` yalnızca sunucu tarafındaki doğrulanmış form uçlarında ve rate limit çağrısında kullanılır; bu anahtarı hiçbir zaman `NEXT_PUBLIC_` adıyla tanımlamayın veya tarayıcı koduna koymayın.
+3. `supabase/migrations/202611230001_initial_schema.sql` dosyasını Supabase SQL Editor'da çalıştırın. Dosya tabloları, RLS politikalarını ve `product-images`, `product-videos`, `company-images` bucket'larını oluşturur.
+4. Authentication ayarlarında e-posta/şifre girişini açın ve herkese açık kayıt oluşturmayı kapatın.
+5. Supabase Authentication bölümünde yönetici kullanıcısını elle oluşturun. Ardından SQL Editor'da aşağıdaki sorguyu kendi yönetici e-postanızla çalıştırıp sadece bu kullanıcıya admin rolü verin:
+
+   ```sql
+   update auth.users
+   set raw_app_meta_data = coalesce(raw_app_meta_data, '{}'::jsonb) || '{"role":"admin"}'::jsonb
+   where email = 'admin@example.com';
+   ```
+
+   Kullanıcıdan çıkış yapıp tekrar giriş yaptıktan sonra `/admin/login` adresini kullanın. Yetki kontrolü sunucuda ve veritabanı RLS politikalarında `app_metadata.role = admin` üzerinden yapılır.
+
+6. `.env.local` dosyasında en az şu değerleri tanımlayın:
+
+   ```dotenv
+   NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=YOUR_PUBLIC_ANON_KEY
+   SUPABASE_SERVICE_ROLE_KEY=YOUR_PRIVATE_SERVICE_ROLE_KEY
+   NEXT_PUBLIC_SITE_URL=http://localhost:3000
+   ```
+
+   Service role anahtarı sunucunun form doğrulaması/rate limitinden sonra talebi kaydetmesi için gerekir. Public API/RLS üzerinden doğrudan tabloya kayıt izni verilmez; anahtar yoksa formlar güvenli biçimde kapalı kalır.
+
+## Environment variables
+
+| Değişken | Kullanım |
+| --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase proje URL'si |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Tarayıcı ve sunucu istemcileri için public anahtar; erişimi RLS sınırlar |
+| `SUPABASE_SERVICE_ROLE_KEY` | Sunucudaki form kayıtları ve rate-limit RPC için gizli anahtar |
+| `NEXT_PUBLIC_SITE_URL` | Metadata, canonical URL, sitemap ve robots için site kökü |
+| `RESEND_API_KEY` | İsteğe bağlı e-posta bildirimi |
+| `ADMIN_NOTIFICATION_EMAIL` | İsteğe bağlı yönetici bildirim adresi |
+| `RESEND_FROM_EMAIL` | Resend'de doğrulanmış gönderen adresi; boşsa Resend test göndereni kullanılır |
+
+Resend ayarlanmazsa kayıtlar Supabase'e yine kaydedilir. Yayına çıkarken Resend'de doğrulanmış bir gönderen domaini kullanın. E-posta hatası kaydedilmiş form verisini silmez.
+
+## Admin paneli
+
+- Ürünlerde Türkçe/İngilizce metin, slug, kod, kategori, teknik alanlar, SEO metinleri, öne çıkarma ve yayın durumu yönetilir.
+- Ürün görselleri Supabase Storage'a yüklenir; admin görseli sıralayıp kapak olarak seçebilir. Video alanı URL kabul eder.
+- Kategoriler yönetilebilir; teklif talepleri filtrelenebilir, durum ve admin notu güncellenebilir.
+- İletişim mesajları okunmuş/okunmamış olarak işaretlenebilir.
+- Firma bilgileri, ana sayfa hero metinleri ve hakkımızda içerikleri düzenlenebilir.
+
+## Veritabanı ve güvenlik
+
+- Public ziyaretçiler yalnızca yayındaki ürünleri ve aktif kategorileri okuyabilir.
+- Sipariş/teklif ve iletişim tablolarında public `SELECT` veya doğrudan `INSERT` politikası yoktur. Validasyonu geçen public form istekleri sunucu route'larından kaydedilir.
+- Yönetici yazma/okuma politikaları Auth `app_metadata` rolünü PostgreSQL RLS içinde doğrular.
+- Storage bucket'ları public görüntülemeye açık, yükleme/değiştirme/silme işlemleri yönetici ile sınırlıdır.
+- Formlar server-side Zod doğrulaması, honeypot ve service-role ile çağrılan veritabanı rate limit kontrolü kullanır. API'den geçmeyen doğrudan REST insert'lerini RLS engeller.
+- Service role anahtarı istemci bileşenlerinde kullanılmaz.
+
+## Build ve yayın
+
+Yerel üretim derlemesini doğrulayın:
+
+```bash
+npm run build
+```
+
+GitHub ve Vercel için:
+
+1. GitHub'da `aras-plastik-website` adlı repository oluşturun.
+2. Bu klasörü repository'ye bağlayıp commit/push edin.
+3. Vercel'de repository'yi import edin ve Production/Preview ortamlarına gerekli environment variable'ları ekleyin.
+4. Deploy edin. Domain satın alındığında `NEXT_PUBLIC_SITE_URL` değerini güncelleyip Vercel domain/DNS yönergelerini izleyin.
+5. Yayındaki sitemap'i Google Search Console'a (`/sitemap.xml`) gönderin.
+
+`.env.local` ve service role anahtarı repository'ye kesinlikle eklenmemelidir. Domain henüz bilinmediği için URL değişkeni tek noktadan kullanılır.
+
+## İçerik ve yayına çıkış notları
+
+- Firma logosu, ürün görselleri, adres, telefon ve teknik ürün bilgileri verilmediği için temsili şirket verisi eklenmemiştir.
+- KVKK metni yayın öncesi veri sorumlusu bilgileriyle tamamlanmalı ve hukuk uzmanına inceletilmelidir.
+- Canlı formları etkinleştirmek için Supabase URL, anon key ve service role key gerekir.
+- Resend e-posta bildirimi isteğe bağlıdır; gerçek gönderici adresi sağlayıcıda doğrulanmalıdır.
+
