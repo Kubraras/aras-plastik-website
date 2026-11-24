@@ -14,9 +14,13 @@ export async function POST(request: Request) {
   const values = parsed.data;
   if (values.website) return Response.json({ success: true, orderNumber: "AP-00000000" });
 
-  const { client, allowed } = await checkFormLimit(request, "quote");
+  const { client, allowed, error: rateLimitError } = await checkFormLimit(request, "quote");
   if (!client) return Response.json({ error: english ? "The request service is not configured yet. Please try again later." : "Talep hizmeti henüz yapılandırılmadı. Lütfen daha sonra tekrar deneyin." }, { status: 503 });
-  if (!allowed) return Response.json({ error: english ? "Too many attempts. Please try again shortly." : "Çok sık deneme yapıldı. Lütfen biraz sonra tekrar deneyin." }, { status: 429 });
+  if (rateLimitError) {
+    console.error("Quote form rate limit check failed:", rateLimitError.message);
+    return Response.json({ error: english ? "The request service is temporarily unavailable. Please try again later." : "Talep hizmeti geçici olarak kullanılamıyor. Lütfen daha sonra tekrar deneyin." }, { status: 503 });
+  }
+  if (!allowed) return Response.json({ error: english ? "Too many attempts. Please try again in a few minutes." : "Çok fazla deneme yapıldı. Lütfen birkaç dakika sonra tekrar deneyin." }, { status: 429, headers: { "Retry-After": "900" } });
 
   const { data: product, error: productError } = await client.from("products").select("id,name_tr,name_en,product_code").eq("id", values.productId).eq("is_published", true).maybeSingle();
   if (productError || !product) return Response.json({ error: english ? "A request cannot be created for this product." : "Bu ürün için talep oluşturulamıyor." }, { status: 404 });
