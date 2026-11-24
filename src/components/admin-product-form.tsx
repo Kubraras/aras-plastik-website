@@ -8,6 +8,7 @@ import { useMemo, useState, type ChangeEvent, type FormEvent } from "react";
 import { createBrowserClient } from "@supabase/ssr";
 import { ArrowDown, ArrowUp, ImagePlus, LoaderCircle, Trash2, Video } from "lucide-react";
 import { toast } from "sonner";
+import { revalidateProductPages } from "@/app/admin/actions";
 import type { Product, ProductImage } from "@/lib/types";
 
 type Category = { id: string; name_tr: string; name_en: string | null };
@@ -105,6 +106,7 @@ export function AdminProductForm({ product, categories }: { product: Product | n
     const supabase = createBrowserClient(url, anonKey);
     const id = product?.id || crypto.randomUUID();
     const uploadedObjects: Array<{ bucket: "product-images" | "product-videos"; path: string }> = [];
+    let productSaved = false;
     try {
       const readyMedia: Array<{ key: string; url: string; existingId?: string }> = [];
       for (const image of media) {
@@ -181,14 +183,21 @@ export function AdminProductForm({ product, categories }: { product: Product | n
       }
       const oldVideoPath = product?.video_url ? storagePath(product.video_url, "product-videos") : null;
       if (oldVideoPath && product?.video_url !== values.video_url) await supabase.storage.from("product-videos").remove([oldVideoPath]);
-      toast.success("Ürün kaydedildi.");
+      productSaved = true;
+      await revalidateProductPages();
+      toast.success(values.is_published ? "Ürün kaydedildi ve sitede yayımlandı." : "Ürün taslak olarak kaydedildi.");
       router.push("/admin/products");
     } catch (error) {
-      for (const bucket of ["product-images", "product-videos"] as const) {
-        const paths = uploadedObjects.filter((item) => item.bucket === bucket).map((item) => item.path);
-        if (paths.length) await supabase.storage.from(bucket).remove(paths);
+      if (!productSaved) {
+        for (const bucket of ["product-images", "product-videos"] as const) {
+          const paths = uploadedObjects.filter((item) => item.bucket === bucket).map((item) => item.path);
+          if (paths.length) await supabase.storage.from(bucket).remove(paths);
+        }
+        toast.error(error instanceof Error ? error.message : "Ürün kaydedilemedi.");
+      } else {
+        toast.warning("Ürün kaydedildi; siteyi yenileyerek yayımlanan hâlini görebilirsin.");
+        router.push("/admin/products");
       }
-      toast.error(error instanceof Error ? error.message : "Ürün kaydedilemedi.");
     } finally {
       setPending(false);
     }
@@ -216,12 +225,12 @@ export function AdminProductForm({ product, categories }: { product: Product | n
     <section className="admin-form-section"><div className="admin-section-heading"><div><h2>Ürün görselleri</h2><p>JPEG, PNG, WebP veya AVIF · en fazla 15 MB / görsel</p></div><label className="admin-upload-button"><ImagePlus size={16} /> Görsel ekle<input type="file" accept="image/jpeg,image/png,image/webp,image/avif" multiple onChange={addFiles} /></label></div>
       {media.length ? <div className="admin-media-grid">{media.map((image, index) => <div className="admin-media-card" key={image.key}><div className="admin-media-preview">{image.file ? <img src={image.url} alt="Ürün görseli önizleme" /> : <Image src={image.url} alt={product?.name_tr || "Ürün görseli"} fill sizes="160px" />}</div><label className="admin-cover-radio"><input type="radio" name="cover" checked={coverKey === image.key} onChange={() => setCoverKey(image.key)} />Kapak</label><div className="admin-media-actions"><button type="button" onClick={() => moveMedia(index, -1)} disabled={index === 0} aria-label="Yukarı taşı"><ArrowUp size={14} /></button><button type="button" onClick={() => moveMedia(index, 1)} disabled={index === media.length - 1} aria-label="Aşağı taşı"><ArrowDown size={14} /></button><button type="button" onClick={() => removeMedia(image)} aria-label="Görseli kaldır"><Trash2 size={14} /></button></div></div>)}</div> : <div className="admin-upload-empty">Henüz ürün görseli eklenmedi.</div>}
     </section>
-    <section className="admin-form-section"><h2>SEO ve yayın</h2><div className="admin-form-grid">
+    <section className="admin-form-section"><h2>SEO ve yayın</h2><p>Yeni ürünler varsayılan olarak yayına alınır ve ana sayfada gösterilir. Taslak kaydetmek için “Yayında” seçimini kapatabilirsin.</p><div className="admin-form-grid">
       <AdminField label="SEO title (TR)" name="seoTitleTr" defaultValue={product?.seo_title_tr || ""} />
       <AdminField label="SEO title (EN)" name="seoTitleEn" defaultValue={product?.seo_title_en || ""} />
       <AdminArea label="SEO description (TR)" name="seoDescriptionTr" defaultValue={product?.seo_description_tr || ""} />
       <AdminArea label="SEO description (EN)" name="seoDescriptionEn" defaultValue={product?.seo_description_en || ""} />
-    </div><div className="admin-checkboxes"><label><input type="checkbox" name="isFeatured" defaultChecked={product?.is_featured} />Öne çıkan ürün</label><label><input type="checkbox" name="isPublished" defaultChecked={product?.is_published} />Yayında</label></div></section>
+    </div><div className="admin-checkboxes"><label><input type="checkbox" name="isFeatured" defaultChecked={product ? product.is_featured : true} />Öne çıkan ürün</label><label><input type="checkbox" name="isPublished" defaultChecked={product ? product.is_published : true} />Yayında</label></div></section>
     <div className="admin-form-actions"><button className="button-primary" type="submit" disabled={pending}>{pending && <LoaderCircle className="spin" size={15} />}{pending ? "Kaydediliyor…" : "Kaydet"}</button><Link href="/admin/products" className="button-secondary">İptal</Link></div>
   </form>;
 }

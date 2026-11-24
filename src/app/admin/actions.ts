@@ -35,7 +35,12 @@ export async function deleteProduct(formData: FormData) {
   const supabase = await requireAdmin();
   await supabase.from("products").delete().eq("id", id.data);
   revalidatePath("/admin/products");
-  revalidatePath("/tr/products");
+  revalidatePath("/", "layout");
+}
+
+export async function revalidateProductPages() {
+  await requireAdmin();
+  revalidatePath("/", "layout");
 }
 
 export async function updateQuote(formData: FormData) {
