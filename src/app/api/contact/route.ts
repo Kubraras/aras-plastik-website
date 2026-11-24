@@ -15,9 +15,13 @@ export async function POST(request: Request) {
   const values = parsed.data;
   if (values.website) return Response.json({ success: true });
 
-  const { client, allowed } = await checkFormLimit(request, "contact");
+  const { client, allowed, error: rateLimitError } = await checkFormLimit(request, "contact");
   if (!client) return Response.json({ error: english ? "The form service is not configured yet. Please try again later." : "Form hizmeti henüz yapılandırılmadı. Lütfen daha sonra tekrar deneyin." }, { status: 503 });
-  if (!allowed) return Response.json({ error: english ? "Too many attempts. Please try again shortly." : "Çok sık deneme yapıldı. Lütfen biraz sonra tekrar deneyin." }, { status: 429 });
+  if (rateLimitError) {
+    console.error("Contact form rate limit check failed:", rateLimitError.message);
+    return Response.json({ error: english ? "The form service is temporarily unavailable. Please try again later." : "Form hizmeti geçici olarak kullanılamıyor. Lütfen daha sonra tekrar deneyin." }, { status: 503 });
+  }
+  if (!allowed) return Response.json({ error: english ? "Too many attempts. Please try again in a few minutes." : "Çok fazla deneme yapıldı. Lütfen birkaç dakika sonra tekrar deneyin." }, { status: 429, headers: { "Retry-After": "900" } });
 
   const messageId = randomUUID();
   const { error } = await client.from("contact_messages").insert({
