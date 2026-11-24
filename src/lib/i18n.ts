@@ -7,7 +7,7 @@ export function isLocale(value: string): value is Locale {
 
 export const copy = {
   tr: {
-    home: "Ana Sayfa", products: "Ürünler", about: "Hakkımızda", contact: "İletişim",
+    home: "Ana Sayfa", products: "Ürünler", about: "Hakkımızda", updates: "Paylaşımlar", contact: "İletişim",
     eyebrow: "ARAS PLASTİK · ÜRÜN KATALOĞU",
     heroTitle: "Plastik ürün ihtiyaçlarınız için doğru başlangıç.",
     heroText: "Ürünlerimizi keşfedin, ihtiyaçlarınızı bize anlatın. Size en uygun çözüm için birlikte ilerleyelim.",
@@ -30,7 +30,7 @@ export const copy = {
     adminLogin: "Yönetici girişi", dashboard: "Yönetim paneli", adminOnly: "Bu alan yalnızca yetkili yöneticiler içindir.",
   },
   en: {
-    home: "Home", products: "Products", about: "About", contact: "Contact",
+    home: "Home", products: "Products", about: "About", updates: "Updates", contact: "Contact",
     eyebrow: "ARAS PLASTIK · PRODUCT CATALOG",
     heroTitle: "A clear starting point for your plastic product needs.",
     heroText: "Explore our products and tell us what you need. Let’s find the right way forward together.",

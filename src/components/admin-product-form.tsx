@@ -100,7 +100,7 @@ export function AdminProductForm({ product, categories }: { product: Product | n
     const form = event.currentTarget;
     const formData = new FormData(form);
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
     if (!url || !anonKey) { toast.error("Supabase ortam değişkenleri eksik."); setPending(false); return; }
     const supabase = createBrowserClient(url, anonKey);
     const id = product?.id || crypto.randomUUID();

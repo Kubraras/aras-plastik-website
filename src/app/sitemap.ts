@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const origin = siteOrigin();
-  const paths = ["", "/products", "/about", "/contact", "/privacy"];
+  const paths = ["", "/products", "/about", "/updates", "/contact", "/privacy"];
   const entries: MetadataRoute.Sitemap = paths.flatMap((path) => {
     const tr = `${origin}/tr${path}`;
     const en = `${origin}/en${path}`;

@@ -4,7 +4,7 @@ import { ArrowRight, ArrowUpRight, Box, Check, CircleDot, Ruler } from "lucide-r
 import { HeroArtwork } from "@/components/hero-artwork";
 import { ProductCard } from "@/components/product-card";
 import { copy, isLocale, localizedPath, type Locale } from "@/lib/i18n";
-import { getProducts, getSiteContent, getSiteSettings } from "@/lib/data";
+import { getProducts, getSiteContent, getSiteSettings, getSocialPosts } from "@/lib/data";
 import { pageMetadata, siteOrigin } from "@/lib/seo";
 import type { Metadata } from "next";
 
@@ -24,7 +24,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   if (!isLocale(value)) return null;
   const locale: Locale = value;
   const text = copy[locale];
-  const [products, settings, siteContent] = await Promise.all([getProducts({ featured: true }), getSiteSettings(), getSiteContent("home")]);
+  const [products, settings, siteContent, socialPosts] = await Promise.all([getProducts({ featured: true }), getSiteSettings(), getSiteContent("home"), getSocialPosts()]);
   const shortDescription = locale === "tr" ? settings.company_description_tr : settings.company_description_en || settings.company_description_tr;
   const heroTitle = locale === "tr" ? siteContent.hero_title_tr : siteContent.hero_title_en || siteContent.hero_title_tr;
   const heroDescription = locale === "tr" ? siteContent.hero_description_tr : siteContent.hero_description_en || siteContent.hero_description_tr;
@@ -48,6 +48,19 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         </div>
         <HeroArtwork imageUrl={heroImage} />
       </section>
+
+      {socialPosts.length > 0 && <section className="home-social-section">
+        <div className="page-shell">
+          <div className="section-heading">
+            <div><div className="eyebrow"><span className="eyebrow-line" />{locale === "tr" ? "ARAS PLASTİK · PAYLAŞIMLAR" : "ARAS PLASTIK · UPDATES"}</div><h2>{locale === "tr" ? "Bizden güncel paylaşımlar." : "The latest from us."}</h2><p>{locale === "tr" ? "Fotoğraf ve videolarla Aras Plastik’ten haberler." : "News from Aras Plastik in photos and videos."}</p></div>
+            <Link href={localizedPath("/updates", locale)} className="text-link">{locale === "tr" ? "Tüm paylaşımlar" : "All updates"}<ArrowRight size={15} /></Link>
+          </div>
+          <div className="public-social-grid">{socialPosts.slice(0, 3).map((post) => <article className="public-social-card" key={post.id}>
+            <div className="public-social-media">{post.media_type === "video" ? <video src={post.media_url} controls playsInline preload="metadata" /> : <img src={post.media_url} alt="Aras Plastik paylaşımı" loading="lazy" />}</div>
+            <div className="public-social-caption"><strong>ARAS PLASTİK</strong>{post.caption && <p>{post.caption}</p>}<time dateTime={post.created_at}>{new Date(post.created_at).toLocaleDateString(locale === "tr" ? "tr-TR" : "en-US", { year: "numeric", month: "long", day: "numeric" })}</time></div>
+          </article>)}</div>
+        </div>
+      </section>}
 
       <section className="catalog-section">
         <div className="page-shell">

@@ -1,14 +1,10 @@
 import { redirect } from "next/navigation";
+import type { User } from "@supabase/supabase-js";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const ADMIN_EMAIL = "davutaras1978@gmail.com";
 
-type AdminIdentity = {
-  email?: string | null;
-  app_metadata?: { role?: unknown } | null;
-} | null | undefined;
-
-export function isAllowedAdmin(user: AdminIdentity) {
+export function isAllowedAdmin(user: User | null | undefined) {
   return user?.email?.trim().toLowerCase() === ADMIN_EMAIL && user.app_metadata?.role === "admin";
 }
 

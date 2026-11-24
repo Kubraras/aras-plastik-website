@@ -1,5 +1,5 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { Product, SiteContent, SiteSettings } from "@/lib/types";
+import type { Product, SiteContent, SiteSettings, SocialPost } from "@/lib/types";
 import { emptySettings } from "@/lib/types";
 
 const productColumns = "*, category:categories(name_tr,name_en,slug), product_images(id,product_id,image_url,alt_text_tr,alt_text_en,sort_order)";
@@ -16,6 +16,20 @@ export async function getSiteContent(contentKey: "home" | "about"): Promise<Site
   if (!supabase) return {};
   const { data } = await supabase.from("site_content").select("value").eq("content_key", contentKey).maybeSingle();
   return (data?.value as SiteContent | undefined) ?? {};
+}
+
+export async function getSocialPosts(): Promise<SocialPost[]> {
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) return [];
+  const { data, error } = await supabase.from("site_content").select("value").eq("content_key", "social").maybeSingle();
+  if (error || !data?.value || typeof data.value !== "object" || Array.isArray(data.value)) return [];
+  const posts = (data.value as { posts?: unknown }).posts;
+  if (!Array.isArray(posts)) return [];
+  return posts.filter((post): post is SocialPost => {
+    if (!post || typeof post !== "object") return false;
+    const value = post as Partial<SocialPost>;
+    return typeof value.id === "string" && typeof value.caption === "string" && typeof value.media_url === "string" && (value.media_type === "image" || value.media_type === "video") && typeof value.created_at === "string";
+  }).slice(0, 60);
 }
 
 export async function getProducts(options: { featured?: boolean; category?: string; search?: string } = {}): Promise<Product[]> {

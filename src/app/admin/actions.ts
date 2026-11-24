@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { ADMIN_EMAIL, isAllowedAdmin, requireAdmin } from "@/lib/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import type { SocialPost } from "@/lib/types";
 
 const httpsUrl = z.string().url().refine((value) => new URL(value).protocol === "https:").max(2048);
 
@@ -119,4 +120,60 @@ export async function savePageContent(formData: FormData) {
   if (error) redirect("/admin/settings?error=content");
   revalidatePath("/", "layout");
   redirect("/admin/settings?saved=content");
+}
+
+export async function createSocialPost(formData: FormData): Promise<{ ok: true } | { ok: false; error: string }> {
+  const input = z.object({
+    id: z.string().uuid(),
+    caption: z.string().trim().max(2200),
+    media_url: z.string().url().max(2048),
+    media_type: z.enum(["image", "video"]),
+  }).safeParse({
+    id: formData.get("id"),
+    caption: formData.get("caption") || "",
+    media_url: formData.get("media_url"),
+    media_type: formData.get("media_type"),
+  });
+  if (!input.success) return { ok: false, error: "Paylaşım bilgileri kontrol edilemedi." };
+  const storagePrefix = `${process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/$/, "")}/storage/v1/object/public/social-posts/`;
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !input.data.media_url.startsWith(storagePrefix)) {
+    return { ok: false, error: "Önce geçerli bir fotoğraf veya video yükleyin." };
+  }
+
+  const supabase = await requireAdmin();
+  const { data: current, error: readError } = await supabase.from("site_content").select("value").eq("content_key", "social").maybeSingle();
+  if (readError) return { ok: false, error: "Paylaşımlar alınamadı." };
+  const value = current?.value && typeof current.value === "object" && !Array.isArray(current.value) ? current.value as { posts?: unknown } : {};
+  const posts = Array.isArray(value.posts) ? value.posts as SocialPost[] : [];
+  const post: SocialPost = { ...input.data, created_at: new Date().toISOString() };
+  const { error } = await supabase.from("site_content").upsert({ content_key: "social", value: { posts: [post, ...posts].slice(0, 60) }, is_public: true });
+  if (error) return { ok: false, error: "Paylaşım kaydedilemedi. Tekrar deneyin." };
+  revalidatePath("/admin/posts");
+  revalidatePath("/tr/updates");
+  revalidatePath("/en/updates");
+  revalidatePath("/tr");
+  revalidatePath("/en");
+  return { ok: true };
+}
+
+export async function deleteSocialPost(formData: FormData) {
+  const parsedId = z.string().uuid().safeParse(formData.get("id"));
+  if (!parsedId.success) return;
+  const supabase = await requireAdmin();
+  const { data: current, error: readError } = await supabase.from("site_content").select("value").eq("content_key", "social").maybeSingle();
+  if (readError || !current?.value || typeof current.value !== "object" || Array.isArray(current.value)) return;
+  const value = current.value as { posts?: unknown };
+  const posts = Array.isArray(value.posts) ? value.posts as SocialPost[] : [];
+  const post = posts.find((item) => item.id === parsedId.data);
+  if (!post) return;
+  const marker = "/storage/v1/object/public/social-posts/";
+  const path = post.media_url.includes(marker) ? decodeURIComponent(post.media_url.split(marker)[1]) : null;
+  if (path) await supabase.storage.from("social-posts").remove([path]);
+  const { error } = await supabase.from("site_content").upsert({ content_key: "social", value: { posts: posts.filter((item) => item.id !== parsedId.data) }, is_public: true });
+  if (error) return;
+  revalidatePath("/admin/posts");
+  revalidatePath("/tr/updates");
+  revalidatePath("/en/updates");
+  revalidatePath("/tr");
+  revalidatePath("/en");
 }

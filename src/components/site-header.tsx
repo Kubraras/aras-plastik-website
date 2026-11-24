@@ -15,6 +15,7 @@ export function SiteHeader({ locale, settings }: { locale: Locale; settings: Sit
   const links = [
     { href: "/", label: text.home },
     { href: "/products", label: text.products },
+    { href: "/updates", label: text.updates },
     { href: "/about", label: text.about },
     { href: "/contact", label: text.contact },
   ];

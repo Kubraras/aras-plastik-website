@@ -5,7 +5,7 @@ export async function checkFormLimit(request: Request, action: "contact" | "quot
   const client = createSupabaseServiceClient();
   if (!client) return { client: null, allowed: false };
   const ip = request.headers.get("x-real-ip") || "unknown";
-  const salt = process.env.SUPABASE_SERVICE_ROLE_KEY || "aras-plastik";
+  const salt = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || "aras-plastik";
   const key = createHash("sha256").update(`${salt}:${ip}`).digest("hex");
   const { data, error } = await client.rpc("consume_form_rate_limit", { p_key: key, p_action: action, p_limit: action === "quote" ? 4 : 5, p_window_seconds: 900 });
   return { client, allowed: !error && data === true };

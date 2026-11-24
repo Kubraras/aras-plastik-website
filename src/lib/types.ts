@@ -37,6 +37,14 @@ export type ProductImage = {
   sort_order: number;
 };
 
+export type SocialPost = {
+  id: string;
+  caption: string;
+  media_url: string;
+  media_type: "image" | "video";
+  created_at: string;
+};
+
 export type SiteSettings = {
   company_name: string;
   company_description_tr: string | null;

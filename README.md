@@ -18,7 +18,7 @@ Aras Plastik için Türkçe/İngilizce, ürün kataloğu ve teklif talebi odakl�
 - Ürün görsel galerisi, video URL alanı, teknik özellikler ve iki dilli SEO alanları
 - İletişim ve teklif talebi formları; sunucu doğrulaması, honeypot ve IP tabanlı veritabanı rate limit
 - Supabase Auth ile yönetici girişi; ürün/kategori yönetimi, talepler, mesajlar ve içerik düzenleme
-- Ürün fotoğrafı yükleme ve sıralama; Storage bucket politikaları
+- Ürün fotoğrafı yükleme ve sıralama; Instagram benzeri Paylaşımlar alanında fotoğraf/video ve açıklama yayınlama
 - Site ayarları, e-posta bildirimi (Resend yapılandırıldığında), WhatsApp
 - Dinamik metadata, canonical/hreflang, Open Graph, robots ve sitemap
 - Hukuki inceleme gerektirdiği açıkça belirtilen KVKK metin taslağı
@@ -45,8 +45,8 @@ Site `http://localhost:3000` adresinde, yönetim girişi `/admin/login` adresind
 ## Supabase kurulumu
 
 1. Supabase'te yeni bir proje oluşturun.
-2. Project URL, anon/public key ve service role key değerlerini proje ayarlarından alın. `SUPABASE_SERVICE_ROLE_KEY` yalnızca sunucu tarafındaki doğrulanmış form uçlarında ve rate limit çağrısında kullanılır; bu anahtarı hiçbir zaman `NEXT_PUBLIC_` adıyla tanımlamayın veya tarayıcı koduna koymayın.
-3. `supabase/migrations` içindeki SQL dosyalarını dosya adına göre sırayla Supabase SQL Editor'da çalıştırın. İlk migration tabloları, RLS politikalarını ve `product-images`, `product-videos`, `company-images` bucket'larını oluşturur; ikinci migration iletişim kişilerini ekler; üçüncü migration admin erişimini belirtilen e-posta adresine sınırlar.
+2. Dashboard'daki **Connect** veya **Settings → API Keys** bölümünden Project URL, publishable key (`sb_publishable_...`) ve secret key (`sb_secret_...`) değerlerini alın. Secret key yalnızca sunucudaki doğrulanmış form uçları ve rate limit çağrısı için kullanılır; bunu hiçbir zaman `NEXT_PUBLIC_` adıyla tanımlamayın veya tarayıcı koduna koymayın. Uygulama eski `anon` / `service_role` anahtar adlarını da geçiş süresince kabul eder.
+3. `supabase/migrations` içindeki SQL dosyalarını dosya adına göre sırayla Supabase SQL Editor'da çalıştırın. Bu dosyalar tabloları, RLS politikalarını, medya bucket'larını, iletişim kişilerini ve admin e-posta kısıtlamasını kurar.
 4. Authentication ayarlarında e-posta/şifre girişini açın ve herkese açık kayıt oluşturmayı kapatın.
 5. Supabase Authentication bölümünde `davutaras1978@gmail.com` adresiyle bir kullanıcı oluşturun ve kendinizin belirlediği şifreyi kullanın. Kayıt oluşturmayı kapalı tutun. Bu hesabı tek yönetici yapmak için SQL Editor'da aşağıdaki sorguyu çalıştırın:
 
@@ -62,8 +62,8 @@ Site `http://localhost:3000` adresinde, yönetim girişi `/admin/login` adresind
 
    ```dotenv
    NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=YOUR_PUBLIC_ANON_KEY
-   SUPABASE_SERVICE_ROLE_KEY=YOUR_PRIVATE_SERVICE_ROLE_KEY
+   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
+   SUPABASE_SECRET_KEY=sb_secret_...
    NEXT_PUBLIC_SITE_URL=http://localhost:3000
    ```
 
@@ -74,12 +74,25 @@ Site `http://localhost:3000` adresinde, yönetim girişi `/admin/login` adresind
 | Değişken | Kullanım |
 | --- | --- |
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase proje URL'si |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Tarayıcı ve sunucu istemcileri için public anahtar; erişimi RLS sınırlar |
-| `SUPABASE_SERVICE_ROLE_KEY` | Sunucudaki form kayıtları ve rate-limit RPC için gizli anahtar |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Tarayıcı ve sunucu istemcileri için public anahtar; erişimi RLS sınırlar |
+| `SUPABASE_SECRET_KEY` | Sunucudaki form kayıtları ve rate-limit RPC için gizli anahtar; istemciye koymayın |
 | `NEXT_PUBLIC_SITE_URL` | Metadata, canonical URL, sitemap ve robots için site kökü |
 | `RESEND_API_KEY` | İsteğe bağlı e-posta bildirimi |
 | `ADMIN_NOTIFICATION_EMAIL` | İsteğe bağlı yönetici bildirim adresi |
 | `RESEND_FROM_EMAIL` | Resend'de doğrulanmış gönderen adresi; boşsa Resend test göndereni kullanılır |
+
+### Supabase anahtarlarını bağlama
+
+Dashboard'da Project URL ve `sb_publishable_...` anahtarını **Connect** veya **Settings → API Keys** bölümünden alın. `sb_secret_...` anahtarını yalnızca sunucu tarafı için kullanın. Yeni anahtar biçimiyle `.env.local` şu şekilde görünür:
+
+```dotenv
+NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
+SUPABASE_SECRET_KEY=sb_secret_...
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
+```
+
+`.env.local` kaydedildikten sonra geliştirme sunucusunu yeniden başlatın. Auth kullanıcısını **Authentication → Users → Add user** bölümünde oluşturun; admin rolünü yalnızca `davutaras1978@gmail.com` için verin.
 
 Resend ayarlanmazsa kayıtlar Supabase'e yine kaydedilir. Yayına çıkarken Resend'de doğrulanmış bir gönderen domaini kullanın. E-posta hatası kaydedilmiş form verisini silmez.
 
@@ -88,6 +101,8 @@ Resend ayarlanmazsa kayıtlar Supabase'e yine kaydedilir. Yayına çıkarken Res
 - Giriş: `/admin/login`. Tek izinli hesap `davutaras1978@gmail.com`; ilk kullanım için Supabase Auth'ta bu kullanıcıyı oluşturup `app_metadata.role = admin` yetkisini verin.
 - Ürünlerde Türkçe/İngilizce metin, slug, kod, kategori, teknik alanlar, SEO metinleri, öne çıkarma ve yayın durumu yönetilir.
 - Ürün fotoğrafları Supabase Storage'a yüklenir; admin görselleri sıralayıp kapak olarak seçebilir. Ürün videosu için HTTPS bağlantısı girebilir veya en fazla 50 MB MP4/WebM dosyası yükleyebilirsiniz.
+- `/admin/posts` ekranında tek görsel veya MP4/WebM video seçip açıklama yazın. Önizleme ve yayımlama sonrası gönderi `/tr/updates` ve `/en/updates` sayfalarında gösterilir. Dosya sınırları görsel için 15 MB, video için 50 MB'dır.
+- Supabase bağlantısı yokken yerel `/admin/preview` ekranından paylaşım oluşturma arayüzünü inceleyin; bu önizleme dosyaları kaydetmez.
 - Ürün eklemek için `Ürünler > Yeni ürün` yolunu izleyin; bilgileri doldurun, fotoğraf ve isterseniz video ekleyin, sonra `Yayında` kutusunu seçip kaydedin.
 - Kategoriler yönetilebilir; teklif talepleri filtrelenebilir, durum ve admin notu güncellenebilir.
 - İletişim mesajları okunmuş/okunmamış olarak işaretlenebilir.
@@ -100,7 +115,7 @@ Resend ayarlanmazsa kayıtlar Supabase'e yine kaydedilir. Yayına çıkarken Res
 - Yönetici yazma/okuma politikaları Auth e-posta izin listesini ve `app_metadata` rolünü PostgreSQL RLS içinde doğrular.
 - Storage bucket'ları public görüntülemeye açık, yükleme/değiştirme/silme işlemleri yönetici ile sınırlıdır.
 - Formlar server-side Zod doğrulaması, honeypot ve service-role ile çağrılan veritabanı rate limit kontrolü kullanır. API'den geçmeyen doğrudan REST insert'lerini RLS engeller.
-- Service role anahtarı istemci bileşenlerinde kullanılmaz.
+- Secret/service role anahtarı istemci bileşenlerinde kullanılmaz.
 
 ## Build ve yayın
 

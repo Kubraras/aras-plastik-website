@@ -24,5 +24,6 @@ export default async function AdminLoginPage({ searchParams }: { searchParams: P
     {error === "setup" && <p className="admin-error" role="alert">Supabase bağlantısı yapılandırılmamış. .env.local dosyasını kontrol edin.</p>}
     {!configured && <p className="admin-notice">Supabase henüz bağlanmamış. Proje URL'si ve anahtarları eklendiğinde bu hesaptan giriş açılır.</p>}
     <p className="admin-notice">Bu e-posta için Supabase Auth kullanıcısı ve admin yetkisi tanımlanmalıdır. Kayıt olma seçeneği yoktur.</p>
+    {process.env.NODE_ENV !== "production" && <Link className="admin-preview-link" href="/admin/preview">Yönetim ekranını önizle</Link>}
   </section></main>;
 }

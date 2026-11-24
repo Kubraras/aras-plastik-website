@@ -29,6 +29,7 @@ export function SiteFooter({ locale, settings }: { locale: Locale; settings: Sit
         <div className="footer-column">
           <span className="footer-label">{locale === "tr" ? "KEŞFEDİN" : "EXPLORE"}</span>
           <Link href={localizedPath("/products", locale)}>{text.products}<ArrowUpRight size={13} /></Link>
+          <Link href={localizedPath("/updates", locale)}>{text.updates}<ArrowUpRight size={13} /></Link>
           <Link href={localizedPath("/about", locale)}>{text.about}<ArrowUpRight size={13} /></Link>
           <Link href={localizedPath("/contact", locale)}>{text.contact}<ArrowUpRight size={13} /></Link>
         </div>

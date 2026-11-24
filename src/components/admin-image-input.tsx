@@ -16,7 +16,7 @@ export function AdminImageInput({ name, label, initialValue = "" }: { name: stri
     if (!file) return;
     if (!types.has(file.type) || file.size > 15 * 1024 * 1024) { toast.error("JPEG, PNG, WebP veya AVIF; en fazla 15 MB."); return; }
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
     if (!url || !anonKey) { toast.error("Supabase ortam değişkenleri eksik."); return; }
     setPending(true);
     try {
