@@ -158,6 +158,8 @@ export async function createSocialPost(formData: FormData): Promise<{ ok: true }
   revalidatePath("/en/updates");
   revalidatePath("/tr");
   revalidatePath("/en");
+  revalidatePath("/tr/products");
+  revalidatePath("/en/products");
   return { ok: true };
 }
 
@@ -181,4 +183,6 @@ export async function deleteSocialPost(formData: FormData) {
   revalidatePath("/en/updates");
   revalidatePath("/tr");
   revalidatePath("/en");
+  revalidatePath("/tr/products");
+  revalidatePath("/en/products");
 }

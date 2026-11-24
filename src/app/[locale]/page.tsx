@@ -56,7 +56,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
             <Link href={localizedPath("/updates", locale)} className="text-link">{locale === "tr" ? "Tüm paylaşımlar" : "All updates"}<ArrowRight size={15} /></Link>
           </div>
           <div className="public-social-grid">{socialPosts.slice(0, 3).map((post) => <article className="public-social-card" key={post.id}>
-            <div className="public-social-media">{post.media_type === "video" ? <video src={post.media_url} controls playsInline preload="metadata" /> : <img src={post.media_url} alt="Aras Plastik paylaşımı" loading="lazy" />}</div>
+            <div className="public-social-media">{post.media_type === "video" ? <video src={post.media_url} controls playsInline preload="metadata" /> : <Image src={post.media_url} alt="Aras Plastik paylaşımı" width={800} height={800} sizes="(max-width: 760px) 90vw, 30vw" unoptimized />}</div>
             <div className="public-social-caption"><strong>ARAS PLASTİK</strong>{post.caption && <p>{post.caption}</p>}<time dateTime={post.created_at}>{new Date(post.created_at).toLocaleDateString(locale === "tr" ? "tr-TR" : "en-US", { year: "numeric", month: "long", day: "numeric" })}</time></div>
           </article>)}</div>
         </div>
@@ -65,11 +65,14 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       <section className="catalog-section">
         <div className="page-shell">
           <div className="section-heading">
-            <div><div className="eyebrow"><span className="eyebrow-line" />01 / {locale === "tr" ? "ÜRÜNLER" : "PRODUCTS"}</div><h2>{text.featured}</h2><p>{text.featuredSub}</p></div>
+            <div><div className="eyebrow"><span className="eyebrow-line" />01 / {locale === "tr" ? "ÜRÜNLER" : "PRODUCTS"}</div><h2>{!products.length && socialPosts.length ? (locale === "tr" ? "Ürünlerimizden görseller." : "A look at our products.") : text.featured}</h2><p>{!products.length && socialPosts.length ? (locale === "tr" ? "Fotoğraf ve video paylaşımlarımız bu katalog alanında da yer alır." : "Our photos and videos also appear in this catalog section.") : text.featuredSub}</p></div>
             <Link href={localizedPath("/products", locale)} className="text-link">{text.allProducts}<ArrowRight size={15} /></Link>
           </div>
           {products.length ? <div className="product-grid">{products.slice(0, 3).map((product) => <ProductCard key={product.id} product={product} locale={locale} />)}</div> : (
-            <div className="empty-products"><Box size={27} strokeWidth={1.2} /><h3>{text.noProducts}</h3><p>{text.noProductsText}</p></div>
+            socialPosts.length ? <div className="public-social-grid">{socialPosts.slice(0, 3).map((post) => <article className="public-social-card" key={post.id}>
+              <div className="public-social-media">{post.media_type === "video" ? <video src={post.media_url} controls playsInline preload="metadata" /> : <Image src={post.media_url} alt="Aras Plastik paylaşımı" width={800} height={800} sizes="(max-width: 760px) 90vw, 30vw" unoptimized />}</div>
+              <div className="public-social-caption"><strong>ARAS PLASTİK</strong>{post.caption && <p>{post.caption}</p>}<time dateTime={post.created_at}>{new Date(post.created_at).toLocaleDateString(locale === "tr" ? "tr-TR" : "en-US", { year: "numeric", month: "long", day: "numeric" })}</time></div>
+            </article>)}</div> : <div className="empty-products"><Box size={27} strokeWidth={1.2} /><h3>{text.noProducts}</h3><p>{text.noProductsText}</p></div>
           )}
         </div>
       </section>

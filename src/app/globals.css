@@ -176,6 +176,8 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .admin-social-empty strong { color: #455f67; font-size: 13px; font-weight: 500; }
 .admin-social-empty span { font-size: 10px; }
 .public-social-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; }
+.catalog-social-posts { margin-top: 58px; }
+.catalog-social-posts .section-heading { margin-bottom: 24px; }
 .public-social-caption strong { color: #274b5a; font-size: 10px; letter-spacing: .08em; }
 .public-social-caption p { min-height: 0; color: #596f76; font-size: 11px; }
 .updates-empty { padding-block: 75px; }
