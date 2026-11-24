@@ -3,19 +3,19 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { requireAdmin } from "@/lib/admin";
+import { ADMIN_EMAIL, isAllowedAdmin, requireAdmin } from "@/lib/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 const httpsUrl = z.string().url().refine((value) => new URL(value).protocol === "https:").max(2048);
 
 export async function signInAdmin(formData: FormData) {
-  const email = String(formData.get("email") || "").trim();
+  const email = String(formData.get("email") || "").trim().toLowerCase();
   const password = String(formData.get("password") || "");
-  if (!email || !password || password.length > 200) redirect("/admin/login?error=credentials");
+  if (email !== ADMIN_EMAIL || !password || password.length > 200) redirect("/admin/login?error=credentials");
   const supabase = await createSupabaseServerClient();
   if (!supabase) redirect("/admin/login?error=setup");
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error || data.user?.app_metadata?.role !== "admin") {
+  if (error || !isAllowedAdmin(data.user)) {
     if (data.user) await supabase.auth.signOut();
     redirect("/admin/login?error=credentials");
   }

@@ -46,17 +46,17 @@ Site `http://localhost:3000` adresinde, yönetim girişi `/admin/login` adresind
 
 1. Supabase'te yeni bir proje oluşturun.
 2. Project URL, anon/public key ve service role key değerlerini proje ayarlarından alın. `SUPABASE_SERVICE_ROLE_KEY` yalnızca sunucu tarafındaki doğrulanmış form uçlarında ve rate limit çağrısında kullanılır; bu anahtarı hiçbir zaman `NEXT_PUBLIC_` adıyla tanımlamayın veya tarayıcı koduna koymayın.
-3. `supabase/migrations` içindeki SQL dosyalarını dosya adına göre sırayla Supabase SQL Editor'da çalıştırın. İlk migration tabloları, RLS politikalarını ve `product-images`, `product-videos`, `company-images` bucket'larını oluşturur; ikinci migration iletişim kişilerini ekler.
+3. `supabase/migrations` içindeki SQL dosyalarını dosya adına göre sırayla Supabase SQL Editor'da çalıştırın. İlk migration tabloları, RLS politikalarını ve `product-images`, `product-videos`, `company-images` bucket'larını oluşturur; ikinci migration iletişim kişilerini ekler; üçüncü migration admin erişimini belirtilen e-posta adresine sınırlar.
 4. Authentication ayarlarında e-posta/şifre girişini açın ve herkese açık kayıt oluşturmayı kapatın.
-5. Supabase Authentication bölümünde yönetici kullanıcısını elle oluşturun. Ardından SQL Editor'da aşağıdaki sorguyu kendi yönetici e-postanızla çalıştırıp sadece bu kullanıcıya admin rolü verin:
+5. Supabase Authentication bölümünde `davutaras1978@gmail.com` adresiyle bir kullanıcı oluşturun ve kendinizin belirlediği şifreyi kullanın. Kayıt oluşturmayı kapalı tutun. Bu hesabı tek yönetici yapmak için SQL Editor'da aşağıdaki sorguyu çalıştırın:
 
    ```sql
    update auth.users
    set raw_app_meta_data = coalesce(raw_app_meta_data, '{}'::jsonb) || '{"role":"admin"}'::jsonb
-   where email = 'admin@example.com';
+   where lower(email) = 'davutaras1978@gmail.com';
    ```
 
-   Kullanıcıdan çıkış yapıp tekrar giriş yaptıktan sonra `/admin/login` adresini kullanın. Yetki kontrolü sunucuda ve veritabanı RLS politikalarında `app_metadata.role = admin` üzerinden yapılır.
+   Kullanıcıdan çıkış yapıp tekrar giriş yaptıktan sonra `/admin/login` adresini kullanın. Uygulama ve RLS, hem bu e-postayı hem de `app_metadata.role = admin` değerini doğrular. Diğer e-posta adresleri admin rolü olsa bile giriş yapamaz.
 
 6. `.env.local` dosyasında en az şu değerleri tanımlayın:
 
@@ -85,7 +85,7 @@ Resend ayarlanmazsa kayıtlar Supabase'e yine kaydedilir. Yayına çıkarken Res
 
 ## Admin paneli
 
-- Giriş: `/admin/login`. İlk kullanım için Supabase Auth'ta bir yönetici kullanıcısı oluşturup `app_metadata.role = admin` yetkisini verin.
+- Giriş: `/admin/login`. Tek izinli hesap `davutaras1978@gmail.com`; ilk kullanım için Supabase Auth'ta bu kullanıcıyı oluşturup `app_metadata.role = admin` yetkisini verin.
 - Ürünlerde Türkçe/İngilizce metin, slug, kod, kategori, teknik alanlar, SEO metinleri, öne çıkarma ve yayın durumu yönetilir.
 - Ürün fotoğrafları Supabase Storage'a yüklenir; admin görselleri sıralayıp kapak olarak seçebilir. Ürün videosu için HTTPS bağlantısı girebilir veya en fazla 50 MB MP4/WebM dosyası yükleyebilirsiniz.
 - Ürün eklemek için `Ürünler > Yeni ürün` yolunu izleyin; bilgileri doldurun, fotoğraf ve isterseniz video ekleyin, sonra `Yayında` kutusunu seçip kaydedin.
@@ -97,7 +97,7 @@ Resend ayarlanmazsa kayıtlar Supabase'e yine kaydedilir. Yayına çıkarken Res
 
 - Public ziyaretçiler yalnızca yayındaki ürünleri ve aktif kategorileri okuyabilir.
 - Sipariş/teklif ve iletişim tablolarında public `SELECT` veya doğrudan `INSERT` politikası yoktur. Validasyonu geçen public form istekleri sunucu route'larından kaydedilir.
-- Yönetici yazma/okuma politikaları Auth `app_metadata` rolünü PostgreSQL RLS içinde doğrular.
+- Yönetici yazma/okuma politikaları Auth e-posta izin listesini ve `app_metadata` rolünü PostgreSQL RLS içinde doğrular.
 - Storage bucket'ları public görüntülemeye açık, yükleme/değiştirme/silme işlemleri yönetici ile sınırlıdır.
 - Formlar server-side Zod doğrulaması, honeypot ve service-role ile çağrılan veritabanı rate limit kontrolü kullanır. API'den geçmeyen doğrudan REST insert'lerini RLS engeller.
 - Service role anahtarı istemci bileşenlerinde kullanılmaz.
