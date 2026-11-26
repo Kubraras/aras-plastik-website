@@ -1,23 +1,31 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { replyToContactMessage } from "@/app/admin/actions";
 
-export function AdminMessageReply({ id, email, fullName }: { id: string; email: string | null; fullName: string }) {
+export function AdminMessageReply({ id, email, emailSendingConfigured }: { id: string; email: string | null; emailSendingConfigured: boolean }) {
   const [reply, setReply] = useState("");
-  const [status, setStatus] = useState("");
+  const [status, setStatus] = useState<{ ok: boolean; message: string } | null>(null);
+  const [pending, setPending] = useState(false);
 
-  function openReplyEmail(event: FormEvent<HTMLFormElement>) {
+  async function sendReply(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!email || !reply.trim()) return;
-
-    const subject = "Aras Plastik mesajınıza yanıt";
-    const body = `Merhaba ${fullName},\n\n${reply.trim()}\n\nİyi günler,\nAras Plastik`;
-    setStatus("E-posta taslağı açılıyor. Müşteriye iletmek için e-posta uygulamanızda Gönder'e basın.");
-    window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    if (!email || !reply.trim() || pending) return;
+    setPending(true);
+    setStatus(null);
+    try {
+      const result = await replyToContactMessage(id, reply);
+      setStatus(result);
+      if (result.ok) setReply("");
+    } catch {
+      setStatus({ ok: false, message: "Yanıt gönderilemedi. Lütfen tekrar deneyin." });
+    } finally {
+      setPending(false);
+    }
   }
 
   return (
-    <form className="admin-message-reply" onSubmit={openReplyEmail}>
+    <form className="admin-message-reply" onSubmit={sendReply}>
       <label htmlFor={`reply-${id}`}>Yanıtınız</label>
       <textarea
         id={`reply-${id}`}
@@ -29,11 +37,12 @@ export function AdminMessageReply({ id, email, fullName }: { id: string; email: 
         required
       />
       <div className="admin-message-reply-actions">
-        <button type="submit" className="admin-save" disabled={!email || !reply.trim()}>Yanıtla</button>
+        <button type="submit" className="admin-save" disabled={!email || !emailSendingConfigured || !reply.trim() || pending}>{pending ? "Gönderiliyor…" : "Yanıtı gönder"}</button>
         {!email && <span>Yanıtı telefonla iletebilirsiniz; müşterinin e-posta adresi paylaşılmamış.</span>}
       </div>
-      {status && <p className="admin-reply-status" role="status">{status}</p>}
-      {email && <p className="admin-reply-help">Yanıt, e-posta uygulamanızda taslak olarak açılır.</p>}
+      {email && !emailSendingConfigured && <p className="admin-reply-help is-error">Gönderimi açmak için Vercel’de RESEND_API_KEY ve doğrulanmış RESEND_FROM_EMAIL ayarlayın.</p>}
+      {status && <p className={`admin-reply-status ${status.ok ? "is-success" : "is-error"}`} role="status">{status.message}</p>}
+      {email && <p className="admin-reply-help">Yanıt yalnızca bu mesajdaki müşteri adresine gönderilir.</p>}
     </form>
   );
 }

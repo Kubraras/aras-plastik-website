@@ -31,7 +31,7 @@ export function ContactForm({ locale }: { locale: Locale }) {
     <form className="contact-form" onSubmit={submit}>
       <div className="field"><label htmlFor="fullName">{text.name} *</label><input id="fullName" name="fullName" autoComplete="name" required minLength={2} maxLength={120} /></div>
       <div className="field"><label htmlFor="phone">{text.phone} *</label><input id="phone" name="phone" type="tel" autoComplete="tel" required maxLength={24} /></div>
-      <div className="field"><label htmlFor="email">{text.email}</label><input id="email" name="email" type="email" autoComplete="email" maxLength={254} /></div>
+      <div className="field"><label htmlFor="email">{text.email} *</label><input id="email" name="email" type="email" autoComplete="email" required maxLength={254} /><small className="field-hint">{text.emailReplyNote}</small></div>
       <div className="field"><label htmlFor="companyName">{text.company}</label><input id="companyName" name="companyName" autoComplete="organization" maxLength={120} /></div>
       <div className="field full"><label htmlFor="message">{text.message} *</label><textarea id="message" name="message" required minLength={10} maxLength={5000} /></div>
       <label className="consent-field field full"><input type="checkbox" name="privacyConsent" required /><span><Link href={localizedPath("/privacy", locale)} target="_blank">{text.privacy}</Link> — {text.consent}</span></label>

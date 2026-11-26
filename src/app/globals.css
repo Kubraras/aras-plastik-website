@@ -137,6 +137,9 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .home-about-services li { position: relative; padding-left: 18px; color: #365b68; font-size: 12px; line-height: 1.5; }
 .home-about-services li::before { content: ""; position: absolute; top: .58em; left: 0; width: 6px; height: 6px; border-radius: 50%; background: #6c9eaa; }
 .contact-map-action { display: inline-flex; align-items: center; gap: 5px; margin-top: 4px; color: #2c6a7c !important; font-size: 10px; }
+.location-detail { align-items: flex-start; scroll-margin-top: 115px; }
+.contact-map-action { width: fit-content; padding: 7px 0; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+.field-hint { color: #7b8a8f; font-size: 9px; line-height: 1.5; }
 .admin-message-reply { display: grid; gap: 8px; margin-top: 17px; padding-top: 15px; border-top: 1px solid #e5ebec; }
 .admin-message-reply label { color: #526a72; font-size: 10px; }
 .admin-message-reply textarea { width: 100%; min-height: 88px; padding: 10px 11px; border: 1px solid #dfe6e8; outline: none; color: var(--ink); background: #fbfcfb; font: inherit; font-size: 11px; line-height: 1.6; resize: vertical; }
@@ -146,6 +149,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .admin-message-reply-actions span, .admin-reply-help, .admin-reply-status { margin: 0; color: #718187; font-size: 10px; line-height: 1.6; }
 .admin-message-reply .admin-save:disabled { opacity: .5; cursor: not-allowed; }
 .admin-reply-status { color: #28654f; }
+.admin-reply-status.is-error { color: #a63d3d; }
 
 @media (max-width: 760px) {
   .admin-message-reply-actions { align-items: start; flex-direction: column; }

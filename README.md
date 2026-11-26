@@ -77,9 +77,11 @@ Site `http://localhost:3000` adresinde, yönetim girişi `/admin/login` adresind
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Tarayıcı ve sunucu istemcileri için public anahtar; erişimi RLS sınırlar |
 | `SUPABASE_SECRET_KEY` | Sunucudaki form kayıtları ve rate-limit RPC için gizli anahtar; istemciye koymayın |
 | `NEXT_PUBLIC_SITE_URL` | Metadata, canonical URL, sitemap ve robots için site kökü |
-| `RESEND_API_KEY` | İsteğe bağlı e-posta bildirimi |
+| `RESEND_API_KEY` | Yönetici bildirimleri ve admin panelinden müşteriye yanıt göndermek için Resend API anahtarı |
 | `ADMIN_NOTIFICATION_EMAIL` | İsteğe bağlı yönetici bildirim adresi |
-| `RESEND_FROM_EMAIL` | Resend'de doğrulanmış gönderen adresi; boşsa Resend test göndereni kullanılır |
+| `RESEND_FROM_EMAIL` | Resend'de doğrulanmış alan adındaki gönderen adresi (ör. `Aras Plastik <iletisim@example.com>`) |
+
+Admin panelindeki müşteri yanıtları, ilgili mesaj kaydında bulunan e-posta adresine gönderilir. E-posta gönderimi için Resend'de sahip olunan bir alan adı doğrulanmalı, ardından Vercel Production ortamına `RESEND_API_KEY` ve `RESEND_FROM_EMAIL` eklenip yeniden dağıtım yapılmalıdır. Müşteri iletişim formunda yanıt alabilmek için e-posta adresi zorunludur.
 
 ### Supabase anahtarlarını bağlama
 

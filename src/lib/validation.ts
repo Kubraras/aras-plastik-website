@@ -6,7 +6,7 @@ const optionalEmail = z.union([z.literal(""), z.string().trim().email().max(254)
 export const contactSchema = z.object({
   fullName: z.string().trim().min(2).max(120),
   phone,
-  email: optionalEmail,
+  email: z.string().trim().email().max(254),
   companyName: z.string().trim().max(120).optional().default(""),
   message: z.string().trim().min(10).max(5000),
   privacyConsent: z.literal("on", "KVKK bilgilendirmesini onaylamanız gerekir."),
