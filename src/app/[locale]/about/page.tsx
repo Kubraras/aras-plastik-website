@@ -1,6 +1,7 @@
 import { copy, isLocale, type Locale } from "@/lib/i18n";
 import { getSiteContent, getSiteSettings } from "@/lib/data";
 import { pageMetadata } from "@/lib/seo";
+import { DEFAULT_ABOUT_SERVICES_TR } from "@/lib/site-copy";
 import type { Metadata } from "next";
 import Image from "next/image";
 
@@ -17,8 +18,12 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
   const text = copy[locale];
   const [settings, content] = await Promise.all([getSiteSettings(), getSiteContent("about")]);
   const description = locale === "tr" ? settings.company_description_tr : settings.company_description_en || settings.company_description_tr;
-  const aboutCopy = locale === "tr" ? content.body_tr : content.body_en || content.body_tr;
+  const aboutCopy = locale === "tr" ? content.body_tr || DEFAULT_ABOUT_SERVICES_TR.join("\n") : content.body_en || content.body_tr || DEFAULT_ABOUT_SERVICES_TR.join("\n");
+  const aboutLines = typeof aboutCopy === "string" ? aboutCopy.split(/\r?\n/).map((line) => line.trim()).filter(Boolean) : [];
   const heading = locale === "tr" ? content.heading_tr : content.heading_en || content.heading_tr;
   const aboutImage = typeof content.image_url === "string" ? content.image_url : undefined;
-  return <><section className="page-hero"><div className="page-shell"><div className="eyebrow"><span className="eyebrow-line" />ARAS PLASTİK · 02</div><h1>{text.aboutPageTitle}</h1><p>{(typeof heading === "string" && heading) || text.aboutTitle}</p></div></section><section className="page-content"><div className="page-shell about-page-layout">{aboutImage && <Image className="about-page-image" src={aboutImage} alt={locale === "tr" ? "Aras Plastik firma tanıtımı" : "Aras Plastik company overview"} width={1400} height={600} unoptimized />}<div className="prose-placeholder">{(typeof aboutCopy === "string" && aboutCopy) || description || text.aboutPageCopy}</div></div></section></>;
+  const aboutBody = aboutLines.length > 1
+    ? <ul className="about-service-list">{aboutLines.map((line) => <li key={line}>{line}</li>)}</ul>
+    : (typeof aboutCopy === "string" && aboutCopy) || description || text.aboutPageCopy;
+  return <><section className="page-hero"><div className="page-shell"><div className="eyebrow"><span className="eyebrow-line" />ARAS PLASTİK · 02</div><h1>{text.aboutPageTitle}</h1><p>{(typeof heading === "string" && heading) || text.aboutTitle}</p></div></section><section className="page-content"><div className="page-shell about-page-layout">{aboutImage && <Image className="about-page-image" src={aboutImage} alt={locale === "tr" ? "Aras Plastik firma tanıtımı" : "Aras Plastik company overview"} width={1400} height={600} unoptimized />}<div className="prose-placeholder">{aboutBody}</div></div></section></>;
 }

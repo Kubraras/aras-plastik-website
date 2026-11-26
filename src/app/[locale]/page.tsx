@@ -6,6 +6,7 @@ import { ProductCard } from "@/components/product-card";
 import { copy, isLocale, localizedPath, type Locale } from "@/lib/i18n";
 import { getProducts, getSiteContent, getSiteSettings, getSocialPosts } from "@/lib/data";
 import { pageMetadata, siteOrigin } from "@/lib/seo";
+import { DEFAULT_HOME_HERO_DESCRIPTION_TR, DEFAULT_HOME_HERO_TITLE_TR } from "@/lib/site-copy";
 import type { Metadata } from "next";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
@@ -26,8 +27,8 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   const text = copy[locale];
   const [products, settings, siteContent, socialPosts] = await Promise.all([getProducts({ featured: true }), getSiteSettings(), getSiteContent("home"), getSocialPosts()]);
   const shortDescription = locale === "tr" ? settings.company_description_tr : settings.company_description_en || settings.company_description_tr;
-  const heroTitle = locale === "tr" ? siteContent.hero_title_tr : siteContent.hero_title_en || siteContent.hero_title_tr;
-  const heroDescription = locale === "tr" ? siteContent.hero_description_tr : siteContent.hero_description_en || siteContent.hero_description_tr;
+  const heroTitle = locale === "tr" ? siteContent.hero_title_tr || DEFAULT_HOME_HERO_TITLE_TR : siteContent.hero_title_en || siteContent.hero_title_tr || DEFAULT_HOME_HERO_TITLE_TR;
+  const heroDescription = locale === "tr" ? siteContent.hero_description_tr || DEFAULT_HOME_HERO_DESCRIPTION_TR : siteContent.hero_description_en || siteContent.hero_description_tr || DEFAULT_HOME_HERO_DESCRIPTION_TR;
   const homeAbout = locale === "tr" ? siteContent.home_about_tr : siteContent.home_about_en || siteContent.home_about_tr;
   const heroImage = typeof siteContent.hero_image_url === "string" ? siteContent.hero_image_url : undefined;
   const aboutImage = typeof siteContent.home_about_image_url === "string" ? siteContent.home_about_image_url : undefined;
@@ -38,7 +39,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       <section className="home-hero page-shell">
         <div className="hero-copy">
           <div className="eyebrow"><span className="eyebrow-line" />{text.eyebrow}</div>
-          <h1>{typeof heroTitle === "string" && heroTitle ? heroTitle : locale === "tr" ? <>Plastik ürün ihtiyaçlarınız için <em>doğru başlangıç.</em></> : <>A clear starting point for your <em>product needs.</em></>}</h1>
+          <h1 className="home-hero-title">{typeof heroTitle === "string" && heroTitle ? heroTitle : locale === "tr" ? DEFAULT_HOME_HERO_TITLE_TR : <>A clear starting point for your <em>product needs.</em></>}</h1>
           <p>{(typeof heroDescription === "string" && heroDescription) || shortDescription || text.heroText}</p>
           <div className="hero-actions">
             <Link href={localizedPath("/products", locale)} className="button-primary">{text.discover}<ArrowUpRight size={16} /></Link>

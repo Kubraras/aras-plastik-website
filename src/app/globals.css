@@ -194,3 +194,39 @@ button, a { -webkit-tap-highlight-color: transparent; }
   .social-composer-heading { flex-direction: column; }
   .social-composer-limit { text-align: left; }
 }
+
+/* Make the Aras Plastik identity clear at the top of every page. */
+.site-header { height: 94px; }
+.site-header .brand { gap: 14px; }
+.site-header .brand-image { width: 220px; max-height: 64px; }
+.site-header .brand-mark { width: 36px; height: 36px; gap: 4px; }
+.site-header .brand-mark span { width: 8px; }
+.site-header .brand-mark span:nth-child(1) { height: 21px; }
+.site-header .brand-mark span:nth-child(2) { height: 30px; }
+.site-header .brand-mark span:nth-child(3) { height: 36px; }
+.site-header .brand-name { font-size: 20px; }
+.site-header .brand-name span { margin-top: 6px; font-size: 10px; }
+.home-hero h1.home-hero-title { max-width: 650px; font-size: clamp(50px, 6.4vw, 82px); }
+.home-hero .hero-copy > p { max-width: 500px; font-size: 15px; line-height: 1.75; }
+.about-service-list { display: grid; gap: 15px; margin: 0; padding: 0; list-style: none; color: #687b82; font-size: 13px; line-height: 1.7; }
+.about-service-list li { display: flex; align-items: baseline; gap: 12px; }
+.about-service-list li::before { content: ""; flex: 0 0 19px; height: 1px; background: #77a9b4; }
+.footer-address { display: flex; align-items: flex-start; max-width: 300px; color: #93a7ae !important; font-size: 10px !important; line-height: 1.6; }
+
+@media (max-width: 1000px) {
+  .site-header .brand-image { width: 200px; max-height: 58px; }
+}
+
+@media (max-width: 760px) {
+  .site-header { height: 78px; }
+  .site-header .brand-image { width: 182px; max-height: 54px; }
+  .site-header .brand-mark { width: 31px; height: 31px; }
+  .site-header .brand-mark span:nth-child(1) { height: 18px; }
+  .site-header .brand-mark span:nth-child(2) { height: 26px; }
+  .site-header .brand-mark span:nth-child(3) { height: 31px; }
+  .site-header .brand-name { font-size: 18px; }
+  .site-header .brand-name span { font-size: 9px; }
+  .desktop-nav { top: 77px; }
+  .home-hero h1.home-hero-title { font-size: clamp(46px, 12vw, 64px); }
+  .home-hero .hero-copy > p { font-size: 14px; }
+}

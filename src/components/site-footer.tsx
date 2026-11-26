@@ -3,11 +3,13 @@ import Image from "next/image";
 import { ArrowUpRight, ArrowRight } from "lucide-react";
 import { copy, localizedPath, type Locale } from "@/lib/i18n";
 import type { SiteSettings } from "@/lib/types";
+import { DEFAULT_BUSINESS_ADDRESS, googleMapsSearchUrl } from "@/lib/site-copy";
 
 export function SiteFooter({ locale, settings }: { locale: Locale; settings: SiteSettings }) {
   const text = copy[locale];
   const year = new Date().getFullYear();
-  const address = locale === "tr" ? settings.address_tr : settings.address_en ?? settings.address_tr;
+  const address = ((locale === "tr" ? settings.address_tr : settings.address_en || settings.address_tr)?.trim()) || DEFAULT_BUSINESS_ADDRESS;
+  const mapUrl = settings.map_url?.trim() || googleMapsSearchUrl(address);
   const contactPeople = [
     { name: settings.contact_person_1_name, phone: settings.contact_person_1_phone },
     { name: settings.contact_person_2_name, phone: settings.contact_person_2_phone },
@@ -41,7 +43,7 @@ export function SiteFooter({ locale, settings }: { locale: Locale; settings: Sit
           {settings.whatsapp && <a href={`https://wa.me/${settings.whatsapp.replace(/\D/g, "")}`} target="_blank" rel="noreferrer">WhatsApp<ArrowUpRight size={13} /></a>}
           {settings.instagram && <a href={settings.instagram} target="_blank" rel="noreferrer">Instagram<ArrowUpRight size={13} /></a>}
           {settings.linkedin && <a href={settings.linkedin} target="_blank" rel="noreferrer">LinkedIn<ArrowUpRight size={13} /></a>}
-          {address && <span className="footer-address">{address}</span>}
+          {address && <a className="footer-address" href={mapUrl} target="_blank" rel="noreferrer">{address}<ArrowUpRight size={13} /></a>}
           {!contactPeople.length && !settings.phone && !settings.email && !address && <span className="footer-address">{text.notConfigured}</span>}
         </div>
         <Link href={localizedPath("/contact", locale)} className="footer-contact-link">{locale === "tr" ? "Birlikte başlayalım" : "Let’s get started"}<ArrowRight size={17} /></Link>
