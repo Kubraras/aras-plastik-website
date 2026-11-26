@@ -3,7 +3,7 @@ import Image from "next/image";
 import { ArrowUpRight, ArrowRight } from "lucide-react";
 import { copy, localizedPath, type Locale } from "@/lib/i18n";
 import type { SiteSettings } from "@/lib/types";
-import { DEFAULT_BUSINESS_ADDRESS, googleMapsSearchUrl } from "@/lib/site-copy";
+import { DEFAULT_BUSINESS_ADDRESS, formatTurkishPhone, googleMapsSearchUrl } from "@/lib/site-copy";
 
 export function SiteFooter({ locale, settings }: { locale: Locale; settings: SiteSettings }) {
   const text = copy[locale];
@@ -37,8 +37,8 @@ export function SiteFooter({ locale, settings }: { locale: Locale; settings: Sit
         </div>
         <div className="footer-column footer-contact">
           <span className="footer-label">{text.contact}</span>
-          {contactPeople.map((person) => <a key={person.name} href={`tel:${person.phone.replace(/[^\d+]/g, "")}`}>{person.name} · {person.phone}<ArrowUpRight size={13} /></a>)}
-          {showCompanyPhone && <a href={`tel:${settings.phone}`}>{settings.phone}<ArrowUpRight size={13} /></a>}
+          {contactPeople.map((person) => <a key={person.name} href={`tel:${person.phone.replace(/[^\d+]/g, "")}`}>{person.name} · {formatTurkishPhone(person.phone)}<ArrowUpRight size={13} /></a>)}
+          {showCompanyPhone && <a href={`tel:${settings.phone?.replace(/[^\d+]/g, "")}`}>{formatTurkishPhone(settings.phone)}<ArrowUpRight size={13} /></a>}
           {settings.email && <a href={`mailto:${settings.email}`}>{settings.email}<ArrowUpRight size={13} /></a>}
           {settings.whatsapp && <a href={`https://wa.me/${settings.whatsapp.replace(/\D/g, "")}`} target="_blank" rel="noreferrer">WhatsApp<ArrowUpRight size={13} /></a>}
           {settings.instagram && <a href={settings.instagram} target="_blank" rel="noreferrer">Instagram<ArrowUpRight size={13} /></a>}
