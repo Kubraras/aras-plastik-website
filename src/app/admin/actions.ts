@@ -2,11 +2,11 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { createHash, randomBytes } from "node:crypto";
 import { z } from "zod";
 import { ADMIN_EMAIL, isAllowedAdmin, requireAdmin } from "@/lib/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { SocialPost } from "@/lib/types";
-import { sendCustomerReply } from "@/lib/notifications";
 
 const httpsUrl = z.string().url().refine((value) => new URL(value).protocol === "https:").max(2048);
 
@@ -66,31 +66,32 @@ export async function markMessageRead(formData: FormData) {
   revalidatePath("/admin/messages");
 }
 
-export async function replyToContactMessage(id: string, reply: string): Promise<{ ok: true; message: string } | { ok: false; message: string }> {
+export async function replyToContactMessage(id: string, reply: string): Promise<{ ok: true; message: string; trackingUrl?: string } | { ok: false; message: string }> {
   const input = z.object({ id: z.string().uuid(), reply: z.string().trim().min(1).max(5000) }).safeParse({ id, reply });
   if (!input.success) return { ok: false, message: "Yanıt metnini kontrol edip tekrar deneyin." };
 
   const supabase = await requireAdmin();
-  const { data: message, error } = await supabase
+  const { data: currentMessage, error: readError } = await supabase
     .from("contact_messages")
-    .select("full_name,email")
+    .select("tracking_token_hash")
     .eq("id", input.data.id)
     .maybeSingle();
-  if (error || !message) return { ok: false, message: "Mesaj bulunamadı. Sayfayı yenileyip tekrar deneyin." };
-  if (!message.email || !z.string().email().safeParse(message.email).success) {
-    return { ok: false, message: "Bu mesajda geçerli bir müşteri e-posta adresi yok." };
-  }
+  if (readError || !currentMessage) return { ok: false, message: "Mesaj bulunamadı. Sayfayı yenileyip tekrar deneyin." };
 
-  const result = await sendCustomerReply({ id: input.data.id, recipient: message.email, name: message.full_name, reply: input.data.reply });
-  if (!result.ok) {
-    return {
-      ok: false,
-      message: result.reason === "not-configured"
-        ? "E-posta gönderimi kurulmamış. RESEND_API_KEY ve doğrulanmış RESEND_FROM_EMAIL ayarları gerekli."
-        : "E-posta gönderilemedi. Gönderici alan adı ve Resend ayarlarını kontrol edin.",
-    };
-  }
-  return { ok: true, message: "Yanıt e-posta hizmetine yalnızca bu müşterinin adresiyle iletildi." };
+  const trackingToken = currentMessage.tracking_token_hash ? null : randomBytes(32).toString("base64url");
+  const { error } = await supabase.from("contact_messages").update({
+    reply_text: input.data.reply,
+    reply_updated_at: new Date().toISOString(),
+    is_read: true,
+    ...(trackingToken ? { tracking_token_hash: createHash("sha256").update(trackingToken).digest("hex") } : {}),
+  }).eq("id", input.data.id);
+  if (error) return { ok: false, message: "Yanıt kaydedilemedi. Veritabanı güncellemesini kontrol edip tekrar deneyin." };
+  revalidatePath("/admin/messages");
+  return {
+    ok: true,
+    message: "Yanıt müşterinin özel takip sayfasına kaydedildi.",
+    ...(trackingToken ? { trackingUrl: `/tr/messages/${trackingToken}` } : {}),
+  };
 }
 
 export async function saveSiteSettings(formData: FormData) {

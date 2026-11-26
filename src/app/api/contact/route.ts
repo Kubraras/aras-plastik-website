@@ -1,7 +1,7 @@
 import { contactSchema } from "@/lib/validation";
 import { checkFormLimit } from "@/lib/forms";
 import { sendAdminNotification } from "@/lib/notifications";
-import { randomUUID } from "node:crypto";
+import { createHash, randomBytes, randomUUID } from "node:crypto";
 
 export const runtime = "nodejs";
 
@@ -24,6 +24,8 @@ export async function POST(request: Request) {
   if (!allowed) return Response.json({ error: english ? "Too many attempts. Please try again in a few minutes." : "Çok fazla deneme yapıldı. Lütfen birkaç dakika sonra tekrar deneyin." }, { status: 429, headers: { "Retry-After": "900" } });
 
   const messageId = randomUUID();
+  const trackingToken = randomBytes(32).toString("base64url");
+  const trackingTokenHash = createHash("sha256").update(trackingToken).digest("hex");
   const { error } = await client.from("contact_messages").insert({
     id: messageId,
     full_name: values.fullName,
@@ -32,8 +34,9 @@ export async function POST(request: Request) {
     company_name: values.companyName || null,
     message: values.message,
     privacy_consent: true,
+    tracking_token_hash: trackingTokenHash,
   });
   if (error) return Response.json({ error: english ? "Your message could not be saved. Please try again later." : "Mesaj kaydedilemedi. Lütfen daha sonra tekrar deneyin." }, { status: 503 });
   await sendAdminNotification({ kind: "contact", id: messageId, name: values.fullName, phone: values.phone });
-  return Response.json({ success: true });
+  return Response.json({ success: true, trackingUrl: `/${english ? "en" : "tr"}/messages/${trackingToken}` }, { headers: { "Cache-Control": "no-store" } });
 }

@@ -33,7 +33,7 @@ export function SiteHeader({ locale, settings }: { locale: Locale; settings: Sit
         </Link>
         <nav className={`desktop-nav ${open ? "is-open" : ""}`} aria-label={locale === "tr" ? "Ana menü" : "Main navigation"}>
           {links.map((link) => (
-            <Link key={link.href} href={link.isLocation ? `${localizedPath("/contact", locale)}#location` : localizedPath(link.href, locale)} onClick={() => setOpen(false)} className={!link.isLocation && pathWithoutLocale === link.href ? "nav-link active" : "nav-link"}>
+            <Link key={link.href} href={link.isLocation ? `/${locale}/contact#location` : localizedPath(link.href, locale)} onClick={() => setOpen(false)} className={!link.isLocation && pathWithoutLocale === link.href ? "nav-link active" : "nav-link"}>
               {link.label}
             </Link>
           ))}
