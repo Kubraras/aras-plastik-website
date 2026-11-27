@@ -13,7 +13,7 @@ export const DEFAULT_ABOUT_SERVICES_EN = [
   "Plastic hand press printing services",
 ];
 
-export const DEFAULT_BUSINESS_ADDRESS = "4306 Sokak No: 33, Aydın Mahallesi, Karabağlar/İzmir (Gediz Kavşağı arka sokağı)";
+export const DEFAULT_BUSINESS_ADDRESS = "Aydın, 4306. Sk. No:33, 35130 Karabağlar/İzmir";
 export const SECOND_CONTACT_SERVICE_LABEL = "Plastik Ürün Temin Etme Satış Ekipmanı:";
 
 export function googleMapsSearchUrl(address: string) {
