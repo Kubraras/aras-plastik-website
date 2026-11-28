@@ -65,21 +65,6 @@ export async function markMessageRead(formData: FormData) {
   revalidatePath("/admin/messages");
 }
 
-export async function replyToContactMessage(id: string, reply: string): Promise<{ ok: boolean; message: string }> {
-  const input = z.object({ id: z.string().uuid(), reply: z.string().trim().min(1).max(5000) }).safeParse({ id, reply });
-  if (!input.success) return { ok: false, message: "Yanıt metnini kontrol edip tekrar deneyin." };
-
-  const supabase = await requireAdmin();
-  const { error } = await supabase.from("contact_messages").update({
-    reply_text: input.data.reply,
-    reply_updated_at: new Date().toISOString(),
-    is_read: true,
-  }).eq("id", input.data.id);
-  if (error) return { ok: false, message: "Yanıt kaydedilemedi. Veritabanı güncellemesini kontrol edip tekrar deneyin." };
-  revalidatePath("/admin/messages");
-  return { ok: true, message: "Yanıt kaydedildi. WhatsApp sohbeti açılacak; müşteriye ulaştırmak için WhatsApp'ta Gönder'e basın." };
-}
-
 export async function saveSiteSettings(formData: FormData) {
   const input = z.object({
     company_name: z.string().trim().min(1).max(120),
