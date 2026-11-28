@@ -26,7 +26,7 @@ export const copy = {
     name: "Ad soyad", phone: "Telefon", phoneReplyNote: "Yanıtı WhatsApp'tan gönderebilmemiz için numaranızı doğru girin.", email: "E-posta", emailOptional: "E-posta (isteğe bağlı)", company: "Firma adı", message: "Mesajınız", consent: "KVKK aydınlatma metnini okudum.",
     send: "Mesajı gönder", sending: "Gönderiliyor…", required: "Bu alan zorunludur.", formSuccess: "Mesajınız alındı. Teşekkür ederiz.", formError: "Mesaj gönderilemedi. Lütfen tekrar deneyin.",
     address: "Adres", openMaps: "Google Haritalar'da yol tarifi al", getDirections: "Google Haritalar'da yol tarifi al", notConfigured: "İletişim bilgileri henüz eklenmedi.", aboutPageTitle: "Hakkımızda", aboutPageCopy: "Aras Plastik firma tanıtım metni, çalışma anlayışı ve tarihçe bilgileri yönetim panelinden eklendiğinde burada yayınlanacaktır.",
-    quote: "Teklif / sipariş talebi", quantity: "Talep miktarı", firstName: "Ad", lastName: "Soyad", note: "Ek açıklama", submitQuote: "Talep oluştur", quoteSuccess: "Talebiniz alındı. Talep numaranız:",
+    quote: "Teklifte bulun", quantity: "Talep miktarı", firstName: "Ad", lastName: "Soyad", note: "Ek açıklama", submitQuote: "Talep oluştur", quoteSuccess: "Talebiniz alındı. Talep numaranız:",
     adminLogin: "Yönetici girişi", dashboard: "Yönetim paneli", adminOnly: "Bu alan yalnızca yetkili yöneticiler içindir.",
   },
   en: {
@@ -49,7 +49,7 @@ export const copy = {
     name: "Full name", phone: "Phone", phoneReplyNote: "Enter your number correctly so we can reply through WhatsApp.", email: "Email", emailOptional: "Email (optional)", company: "Company", message: "Your message", consent: "I have read the privacy notice.",
     send: "Send message", sending: "Sending…", required: "This field is required.", formSuccess: "Your message has been received. Thank you.", formError: "Message could not be sent. Please try again.",
     address: "Address", openMaps: "Get directions on Google Maps", getDirections: "Get directions on Google Maps", notConfigured: "Contact information has not been added yet.", aboutPageTitle: "About us", aboutPageCopy: "The company overview, working approach and history for Aras Plastik will be published here once added in the admin panel.",
-    quote: "Quote / order request", quantity: "Requested quantity", firstName: "First name", lastName: "Last name", note: "Additional details", submitQuote: "Submit request", quoteSuccess: "Your request has been received. Reference number:",
+    quote: "Request a quote", quantity: "Requested quantity", firstName: "First name", lastName: "Last name", note: "Additional details", submitQuote: "Submit request", quoteSuccess: "Your request has been received. Reference number:",
     adminLogin: "Admin sign in", dashboard: "Admin dashboard", adminOnly: "This area is for authorized administrators only.",
   },
 } satisfies Record<Locale, Record<string, string>>;
